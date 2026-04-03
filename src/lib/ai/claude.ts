@@ -15,10 +15,10 @@ const MODE_SETTINGS: Record<ChatMode, {
   maxTokens: number
   temperature: number
 }> = {
-  standard:   { maxTokens: 800,  temperature: 0.3, topP: 0.9 },
-  church:     { maxTokens: 150,  temperature: 0.2, topP: 0.9 },
-  youth:      { maxTokens: 200,  temperature: 0.4, topP: 0.9 },
-  deep_study: { maxTokens: 2000, temperature: 0.3, topP: 0.95 },
+  standard:   { maxTokens: 800,  temperature: 0.3 },
+  church:     { maxTokens: 150,  temperature: 0.2 },
+  youth:      { maxTokens: 200,  temperature: 0.4 },
+  deep_study: { maxTokens: 2000, temperature: 0.3 },
 }
 
 // ─── SYSTEM PROMPT SECTIONS ───────────────────────────────────────────────────
