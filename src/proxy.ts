@@ -13,7 +13,7 @@ export async function proxy(request: NextRequest) {
     req: request,
     secret: process.env.AUTH_SECRET,
   })
-  const isAuthenticated = !!token?.id
+  const isAuthenticated = !!token?.sub
 
   if (isAuthenticated && AUTH_ONLY_ROUTES.some((r) => pathname.startsWith(r))) {
     return NextResponse.redirect(new URL('/chat', request.url))
