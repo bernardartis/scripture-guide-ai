@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 interface SubscriptionData {
@@ -27,7 +27,7 @@ const PLAN_DISPLAY: Record<string, { name: string; price: string; features: stri
   },
 }
 
-export default function BillingPage() {
+function BillingPageInner() {
   const searchParams = useSearchParams()
   const success   = searchParams.get('success')
   const cancelled = searchParams.get('cancelled')
@@ -190,5 +190,12 @@ export default function BillingPage() {
         </p>
       </div>
     </div>
+  )
+}
+export default function BillingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" /></div>}>
+      <BillingPageInner />
+    </Suspense>
   )
 }
