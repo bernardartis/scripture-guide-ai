@@ -1,0 +1,290 @@
+// ScriptureGuide AI — Prisma Schema
+// Reflects the PostgreSQL schema designed earlier.
+// Run: npx prisma generate && npx prisma db push
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USERS & AUTH ─────────────────────────────────────────────────────────────
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  emailVerified   DateTime?
+  passwordHash    String?
+  fullName        String
+  role            Role      @default(USER)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  lastLoginAt     DateTime?
+  deletedAt       DateTime?
+
+  profile         UserProfile?
+  accounts        Account[]
+  sessions        Session[]
+  subscription    Subscription?
+  chatSessions    ChatSession[]
+  bookmarks       Bookmark[]
+  communityPosts  CommunityPost[]
+  communityVotes  CommunityVote[]
+  consentRecords  ConsentRecord[]
+
+  @@map("users")
+}
+
+enum Role {
+  USER
+  CHURCH_ADMIN
+  PLATFORM_ADMIN
+}
+
+model UserProfile {
+  id                   String          @id @default(cuid())
+  userId               String          @unique
+  denomination         String?
+  experienceLevel      ExperienceLevel @default(BEGINNER)
+  preferredVersionCode String?         @default("KJV")
+  timezone             String          @default("America/Chicago")
+  churchModeEnabled    Boolean         @default(false)
+  notificationPrefs    Json            @default("{\"verse_of_day\": true, \"weekly_digest\": false}")
+  updatedAt            DateTime        @updatedAt
+
+  user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  GROWING
+  INTERMEDIATE
+  ADVANCED
+  SCHOLAR
+}
+
+// NextAuth required tables
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── CONSENT RECORDS (GDPR / COPPA) ──────────────────────────────────────────
+
+model ConsentRecord {
+  id              String   @id @default(cuid())
+  userId          String
+  consentType     String   // "religious_data" | "tos" | "subscription_billing"
+  documentVersion String
+  consented       Boolean
+  ipHash          String?
+  userAgent       String?
+  timestamp       DateTime @default(now())
+  withdrawnAt     DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("consent_records")
+}
+
+// ─── SUBSCRIPTIONS & BILLING ──────────────────────────────────────────────────
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  userId             String             @unique
+  planTier           PlanTier           @default(FREE)
+  status             SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId   String?            @unique
+  stripeSubId        String?            @unique
+  currentPeriodStart DateTime           @default(now())
+  currentPeriodEnd   DateTime?
+  cancelledAt        DateTime?
+  cancelReason       String?
+  createdAt          DateTime           @default(now())
+
+  user   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events SubscriptionEvent[]
+
+  @@map("subscriptions")
+}
+
+enum PlanTier {
+  FREE
+  BELIEVER
+  CHURCH
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  UNPAID
+}
+
+model SubscriptionEvent {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  eventType      String
+  stripeEventId  String?  @unique
+  payload        Json     @default("{}")
+  createdAt      DateTime @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("subscription_events")
+}
+
+// ─── CHAT SESSIONS & MESSAGES ─────────────────────────────────────────────────
+
+model ChatSession {
+  id              String      @id @default(cuid())
+  userId          String
+  versionCode     String      @default("KJV")
+  mode            ChatMode    @default(STANDARD)
+  title           String?
+  isArchived      Boolean     @default(false)
+  messageCount    Int         @default(0)
+  totalTokensUsed Int         @default(0)
+  createdAt       DateTime    @default(now())
+  lastMessageAt   DateTime    @default(now())
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
+enum ChatMode {
+  STANDARD
+  CHURCH
+  YOUTH
+  DEEP_STUDY
+}
+
+model ChatMessage {
+  id          String      @id @default(cuid())
+  sessionId   String
+  role        MessageRole
+  content     String      @db.Text
+  tokensUsed  Int?
+  latencyMs   Int?
+  modelVersion String?
+  flagged     Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  session   ChatSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  verseRefs MessageVerseRef[]
+
+  @@map("chat_messages")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model MessageVerseRef {
+  id             String  @id @default(cuid())
+  messageId      String
+  verseReference String  // e.g. "John 3:16 (KJV)"
+  relevanceScore Float   @default(1.0)
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("message_verse_refs")
+}
+
+// ─── BOOKMARKS ────────────────────────────────────────────────────────────────
+
+model Bookmark {
+  id             String   @id @default(cuid())
+  userId         String
+  verseReference String   // e.g. "John 3:16"
+  versionCode    String   @default("KJV")
+  verseText      String   @db.Text
+  note           String?
+  folderName     String   @default("General")
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, verseReference, versionCode])
+  @@map("bookmarks")
+}
+
+// ─── COMMUNITY ────────────────────────────────────────────────────────────────
+
+model CommunityPost {
+  id          String   @id @default(cuid())
+  userId      String?
+  question    String   @db.Text
+  aiAnswer    String   @db.Text
+  versionCode String?
+  isApproved  Boolean  @default(false)
+  isFlagged   Boolean  @default(false)
+  voteCount   Int      @default(0)
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  approvedAt  DateTime?
+
+  user  User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  votes CommunityVote[]
+
+  @@map("community_posts")
+}
+
+model CommunityVote {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  value     Int      // 1 or -1
+  createdAt DateTime @default(now())
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("community_votes")
+}
