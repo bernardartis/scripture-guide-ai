@@ -7,11 +7,15 @@ import Stripe from 'stripe'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-03-25.dahlia',
-})
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY not configured')
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2026-03-25.dahlia',
+  })
+}
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripe()
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

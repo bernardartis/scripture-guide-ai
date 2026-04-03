@@ -9,9 +9,12 @@ import Stripe from 'stripe'
 import { db } from '@/lib/db'
 import { sendSubscriptionConfirmation } from '@/lib/email'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-03-25.dahlia',
-})
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY not configured')
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2026-03-25.dahlia',
+  })
+}
 
 const PRICE_TO_PLAN: Record<string, string> = {
   [process.env.STRIPE_PRICE_BELIEVER_MONTHLY ?? '']: 'BELIEVER',
@@ -34,6 +37,7 @@ function getSubIdFromInvoice(invoice: Stripe.Invoice): string | null {
 }
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripe()
   const body = await req.text()
   const sig  = req.headers.get('stripe-signature')
 
