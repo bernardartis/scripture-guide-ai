@@ -12,8 +12,11 @@ export async function proxy(request: NextRequest) {
   const token = await getToken({
     req: request,
     secret: process.env.AUTH_SECRET,
+    cookieName: process.env.NODE_ENV === 'production'
+      ? '__Secure-authjs.session-token'
+      : 'authjs.session-token',
   })
-  const isAuthenticated = !!token?.sub
+  const isAuthenticated = !!(token?.sub || token?.id)
 
   if (isAuthenticated && AUTH_ONLY_ROUTES.some((r) => pathname.startsWith(r))) {
     return NextResponse.redirect(new URL('/chat', request.url))

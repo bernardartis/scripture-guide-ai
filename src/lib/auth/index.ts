@@ -75,6 +75,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.sub  = user.id
         // role is added by our credentials provider; cast needed until custom types are declared
         token.role = (user as { id: string; role?: string }).role ?? 'USER'
       }
