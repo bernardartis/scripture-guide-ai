@@ -147,6 +147,28 @@ export default function ChatPage() {
       .catch(() => null)
   }, [])
 
+// Restore most recent chat session on load
+  useEffect(() => {
+    fetch('/api/chat/history')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.sessionId && d.messages?.length > 0) {
+          setSessionId(d.sessionId)
+          setMessages(d.messages.map((m: {
+            id: string
+            role: string
+            content: string
+            createdAt: string
+          }) => ({
+            id: m.id,
+            role: m.role.toLowerCase() as 'user' | 'assistant',
+            content: m.content,
+          })))
+        }
+      })
+      .catch(() => null)
+  }, [])
+
   // Auto-resize textarea
   useEffect(() => {
     const el = inputRef.current
@@ -330,7 +352,7 @@ export default function ChatPage() {
       </div>
 
       {/* ── INPUT ──────────────────────────────────────────────────────── */}
-      <div className="bg-white border-t border-gray-200 px-4 py-3">
+      <div className="bg-white border-t border-gray-200 px-4 py-3 pb-20 md:pb-3">
         <div className="flex gap-2 items-end max-w-3xl mx-auto">
           <textarea
             ref={inputRef}
