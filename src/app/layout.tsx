@@ -15,11 +15,27 @@ export const metadata: Metadata = {
     description: 'Explore the Bible with confidence',
     type: 'website',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'ScriptureGuide AI',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="ScriptureGuide AI" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="theme-color" content="#92400e" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+      </head>
       <body className="min-h-full flex flex-col bg-gray-50">{children}</body>
     </html>
   )

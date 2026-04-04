@@ -361,8 +361,8 @@ export default function ChatPage() {
             onKeyDown={handleKeyDown}
             placeholder="Ask a Bible question… (Shift+Enter for new line)"
             rows={1}
-            className="flex-1 resize-none border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
-            style={{ minHeight: '42px', maxHeight: '160px' }}
+            className="flex-1 resize-none rounded-xl px-4 py-2.5 text-sm placeholder-stone-400 outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+            style={{ background: "var(--background)", border: "1px solid var(--border-warm)", color: "var(--ink)", minHeight: '42px', maxHeight: '160px' }}
           />
           <button
             onClick={() => sendMessage(input)}
