@@ -1,39 +1,8 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { useTheme } from '@/lib/theme'
 import type { BibleVersionCode, ChatMode } from '@/types'
-
-interface VerseOfDay {
-  text: string
-  reference: string
-  versionCode: string
-}
-
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
-
-const FREE_VERSIONS: BibleVersionCode[] = ['KJV', 'WEB', 'BSB', 'ASV', 'YLT']
-
-const VERSION_LABELS: Record<BibleVersionCode, string> = {
-  KJV:  'KJV — King James Version',
-  WEB:  'WEB — World English Bible',
-  BSB:  'BSB — Berean Standard Bible',
-  ASV:  'ASV — American Standard Version',
-  YLT:  'YLT — Young\'s Literal Translation',
-  ESV:  'ESV — English Standard Version',
-  NASB: 'NASB — New American Standard',
-  NLT:  'NLT — New Living Translation',
-  CSB:  'CSB — Christian Standard Bible',
-}
-
-const QUICK_PROMPTS = [
-  'What does the Bible say about anxiety?',
-  'Explain grace in simple terms',
-  'What is the meaning of John 3:16?',
-  'What does Hebrew say about shalom?',
-  'How should I handle forgiveness?',
-]
-
-// ─── TYPES ────────────────────────────────────────────────────────────────────
 
 interface Message {
   id: string
@@ -42,124 +11,246 @@ interface Message {
   isCrisis?: boolean
 }
 
-// ─── DISCLAIMER BANNER ────────────────────────────────────────────────────────
+interface VerseOfDay {
+  text: string
+  reference: string
+  versionCode: string
+}
+
+interface GreekHebrewChip {
+  original: string
+  transliteration: string
+  strongs: string
+  definition: string
+  language: 'Greek' | 'Hebrew'
+}
+
+const FREE_VERSIONS: BibleVersionCode[] = ['KJV', 'WEB', 'BSB', 'ASV', 'YLT']
+
+const MODES: { value: ChatMode; label: string; desc: string }[] = [
+  { value: 'standard',   label: 'Standard',  desc: 'General Bible study for all levels' },
+  { value: 'church',     label: 'Church',     desc: 'Quick references for sermon use' },
+  { value: 'youth',      label: 'Youth',      desc: 'Plain language for younger readers' },
+  { value: 'deep_study', label: 'Deep Study', desc: 'Seminary-level Greek & Hebrew analysis' },
+]
+
+const QUICK_PROMPTS = [
+  'What does the Bible say about anxiety?',
+  'Explain grace in simple terms',
+  'What is the meaning of John 3:16?',
+  'What does the Hebrew word shalom mean?',
+  'How should I handle forgiveness?',
+]
+
+const SUGGESTED_FOLLOWUPS = [
+  'What is the original Greek or Hebrew word here?',
+  'What cross-references relate to this passage?',
+  'How do different denominations interpret this?',
+]
+
+function parseVerseCards(content: string): { hasVerse: boolean; reference?: string; verseText?: string } {
+  const versePattern = /[\u201c\u201d""]([^\u201c\u201d""]{20,300})[\u201c\u201d""][—\-\u2013]\s*([1-3]?\s?[A-Za-z]+\s+\d+:\d+(?:[\u2013-]\d+)?)\s*\(([A-Z]+)\)/
+  const match = content.match(versePattern)
+  if (match) {
+    return { hasVerse: true, verseText: match[1], reference: `${match[2]} (${match[3]})` }
+  }
+  return { hasVerse: false }
+}
+
+function parseGreekHebrew(content: string): GreekHebrewChip[] {
+  const chips: GreekHebrewChip[] = []
+  const pattern = /Strong[''s]*\s+([GH]\d+)|\(([GH]\d+)\)/gi
+  let m: RegExpExecArray | null
+  while ((m = pattern.exec(content)) !== null) {
+    const code = m[1] || m[2]
+    if (code && !chips.find(c => c.strongs === code)) {
+      chips.push({ original: '', transliteration: '', strongs: code, definition: '', language: code.startsWith('G') ? 'Greek' : 'Hebrew' })
+    }
+  }
+  return chips.slice(0, 3)
+}
 
 function DisclaimerBanner() {
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 text-sm text-amber-800 flex items-start gap-2">
-      <span className="mt-0.5 flex-shrink-0 text-amber-500">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2"/>
-          <path d="M7 4v3.5M7 9.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-        </svg>
-      </span>
+    <div className="flex items-center gap-2.5 px-4 py-2 text-xs rounded-lg mx-4 mt-3 flex-shrink-0"
+         style={{ background: 'rgba(234,131,58,0.08)', border: '1px solid rgba(234,131,58,0.2)', color: 'var(--accent-deep)' }}>
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
+        <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2"/>
+        <path d="M7 4v3.5M7 9.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+      </svg>
       <span>
         <strong>ScriptureGuide AI</strong> is an AI Bible reference tool — not a licensed pastor, counselor, or therapist.
-        For mental health emergencies, call or text <strong>988</strong>.
+        Mental health emergencies: call or text <strong>988</strong>.
       </span>
     </div>
   )
 }
 
-// ─── VERSE CARD ───────────────────────────────────────────────────────────────
+function VerseCard({ reference, text }: { reference: string; text: string }) {
+  const [copied, setCopied] = useState(false)
+  const [bookmarked, setBookmarked] = useState(false)
 
-function VerseCard({ reference, text, version }: { reference: string; text: string; version: string }) {
+  const handleCopy = () => {
+    navigator.clipboard.writeText(`"${text}" — ${reference}`)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
-    <div className="mt-3 bg-white border border-gray-200 border-l-4 border-l-amber-500 rounded-lg p-3">
-      <p className="text-xs font-medium text-blue-700 mb-1">{reference}</p>
-      <p className="text-sm italic text-gray-800 leading-relaxed">"{text}"</p>
-      <p className="text-xs text-gray-400 mt-1.5">— {version}</p>
+    <div className="mt-3 rounded-xl p-3.5"
+         style={{ background: 'var(--verse-bg)', border: '1px solid var(--border)', borderLeft: '3px solid var(--verse-border)' }}>
+      <p className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: 'var(--accent)' }}>
+        {reference}
+      </p>
+      <p className="text-sm leading-relaxed mb-3 verse-text" style={{ color: 'var(--ink)' }}>
+        &ldquo;{text}&rdquo;
+      </p>
+      <div className="flex gap-2 flex-wrap">
+        <button onClick={handleCopy}
+          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors"
+          style={{ background: copied ? 'rgba(234,131,58,0.15)' : 'var(--bg-surface)', color: copied ? 'var(--accent-deep)' : 'var(--ink-muted)', border: '1px solid var(--border)' }}>
+          {copied ? '✓ Copied' : (
+            <>
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="4" y="4" width="9" height="10" rx="1.5"/>
+                <path d="M3 12H2.5A1.5 1.5 0 011 10.5v-8A1.5 1.5 0 012.5 1h7A1.5 1.5 0 0111 2.5V3"/>
+              </svg>
+              Copy verse
+            </>
+          )}
+        </button>
+        <button onClick={() => setBookmarked(true)}
+          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors"
+          style={{ background: bookmarked ? 'rgba(234,131,58,0.15)' : 'var(--bg-surface)', color: bookmarked ? 'var(--accent-deep)' : 'var(--ink-muted)', border: '1px solid var(--border)' }}>
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M3 2h10v13l-5-3-5 3V2z"/>
+          </svg>
+          {bookmarked ? 'Bookmarked' : 'Bookmark'}
+        </button>
+      </div>
     </div>
   )
 }
 
-// ─── MESSAGE BUBBLE ───────────────────────────────────────────────────────────
+function GreekHebrewChips({ chips }: { chips: GreekHebrewChip[] }) {
+  if (chips.length === 0) return null
+  return (
+    <div className="flex gap-2 mt-3 flex-wrap">
+      {chips.map((chip) => (
+        <div key={chip.strongs}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs"
+          style={{ background: 'var(--chip-bg)', border: '1px solid var(--chip-border)', color: 'var(--chip-text)' }}>
+          <span className="font-semibold">{chip.strongs}</span>
+          <span style={{ opacity: 0.5 }}>·</span>
+          <span>{chip.language}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
 
-function MessageBubble({ message }: { message: Message }) {
+function SuggestedFollowUps({ onSelect }: { onSelect: (q: string) => void }) {
+  return (
+    <div className="mt-3 space-y-1.5">
+      {SUGGESTED_FOLLOWUPS.map((q) => (
+        <button key={q} onClick={() => onSelect(q)}
+          className="w-full text-left text-xs px-3 py-2 rounded-lg transition-colors"
+          style={{ background: 'var(--suggest-bg)', border: '1px solid var(--border)', color: 'var(--ink-muted)' }}>
+          {q} →
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function MessageBubble({ message, isLast, onFollowUp }: {
+  message: Message; isLast: boolean; onFollowUp: (q: string) => void
+}) {
   const isUser = message.role === 'user'
-
-  // Parse verse cards out of assistant messages
-  // Format: [VERSE: Reference | Text | Version]
-  const renderContent = (content: string) => {
-    const lines = content.split('\n')
-    return lines.map((line, i) => (
-      <p key={i} className={line === '' ? 'mt-2' : ''}>
-        {line
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .split(/(<strong>.*?<\/strong>)/g)
-          .map((part, j) =>
-            part.startsWith('<strong>') ? (
-              <strong key={j}>{part.replace(/<\/?strong>/g, '')}</strong>
-            ) : (
-              part
-            )
-          )}
-      </p>
-    ))
-  }
+  const parsed = !isUser ? parseVerseCards(message.content) : null
+  const chips  = !isUser ? parseGreekHebrew(message.content) : []
 
   if (isUser) {
     return (
-      <div className="flex justify-end">
-        <div className="max-w-[80%] bg-gray-100 border border-gray-200 rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm text-gray-800 leading-relaxed">
+      <div className="flex justify-end message-enter">
+        <div className="max-w-[80%] rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm leading-relaxed"
+             style={{ background: 'var(--accent-grad)', color: 'white' }}>
           {message.content}
         </div>
       </div>
     )
   }
 
+  const renderContent = (text: string) =>
+    text.split('\n').map((line, i) => (
+      <p key={i} className={line === '' ? 'mt-2' : ''} style={{ color: 'var(--ink)' }}>
+        {line.split(/(\*\*.*?\*\*)/g).map((part, j) =>
+          part.startsWith('**')
+            ? <strong key={j} style={{ color: 'var(--ink)' }}>{part.replace(/\*\*/g, '')}</strong>
+            : part
+        )}
+      </p>
+    ))
+
   return (
-    <div className="flex justify-start">
-      <div className={`max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed ${
-        message.isCrisis
-          ? 'bg-red-50 border border-red-200 text-red-900'
-          : 'bg-white border border-gray-200 border-l-4 border-l-amber-500 text-gray-800'
-      }`}>
-        <div className="space-y-1">{renderContent(message.content)}</div>
+    <div className="flex justify-start message-enter">
+      <div className="max-w-[88%] space-y-1">
+        <div className="rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed"
+             style={message.isCrisis
+               ? { background: '#fef2f2', border: '1px solid #fecaca', color: '#7f1d1d' }
+               : { background: 'var(--msg-ai-bg)', border: '1px solid var(--border)', borderLeft: '3px solid var(--msg-ai-border)' }}>
+          <div className="space-y-1">{renderContent(message.content)}</div>
+        </div>
+
+        {parsed?.hasVerse && parsed.verseText && parsed.reference && (
+          <VerseCard reference={parsed.reference} text={parsed.verseText} />
+        )}
+
+        {chips.length > 0 && <GreekHebrewChips chips={chips} />}
+
+        {isLast && !message.isCrisis && (
+          <SuggestedFollowUps onSelect={onFollowUp} />
+        )}
       </div>
     </div>
   )
 }
 
-// ─── MAIN CHAT PAGE ───────────────────────────────────────────────────────────
-
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
+  const { theme, toggle } = useTheme()
+  const [messages, setMessages]   = useState<Message[]>([])
+  const [input, setInput]         = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [sessionId, setSessionId] = useState<string | undefined>()
-  const [version, setVersion] = useState<BibleVersionCode>('KJV')
-  const [mode, setMode] = useState<ChatMode>('standard')
-  const [votd, setVotd] = useState<VerseOfDay | null>(null)
+  const [version, setVersion]     = useState<BibleVersionCode>('KJV')
+  const [mode, setMode]           = useState<ChatMode>('standard')
+  const [votd, setVotd]           = useState<VerseOfDay | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const inputRef  = useRef<HTMLTextAreaElement>(null)
 
-  // Auto-scroll to latest message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
 
-  // Fetch verse of the day
+  useEffect(() => {
+    const el = inputRef.current
+    if (el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px' }
+  }, [input])
+
   useEffect(() => {
     fetch('/api/verse-of-the-day')
-      .then((r) => r.json())
-      .then((d) => d.verse && setVotd(d.verse))
+      .then(r => r.json())
+      .then(d => d.verse && setVotd(d.verse))
       .catch(() => null)
   }, [])
 
-// Restore most recent chat session on load
   useEffect(() => {
     fetch('/api/chat/history')
-      .then((r) => r.json())
-      .then((d) => {
+      .then(r => r.json())
+      .then(d => {
         if (d.sessionId && d.messages?.length > 0) {
           setSessionId(d.sessionId)
-          setMessages(d.messages.map((m: {
-            id: string
-            role: string
-            content: string
-            createdAt: string
-          }) => ({
+          setMessages(d.messages.map((m: { id: string; role: string; content: string }) => ({
             id: m.id,
             role: m.role.toLowerCase() as 'user' | 'assistant',
             content: m.content,
@@ -169,156 +260,128 @@ export default function ChatPage() {
       .catch(() => null)
   }, [])
 
-  // Auto-resize textarea
-  useEffect(() => {
-    const el = inputRef.current
-    if (el) {
-      el.style.height = 'auto'
-      el.style.height = Math.min(el.scrollHeight, 160) + 'px'
-    }
-  }, [input])
-
-  const sendMessage = async (text: string) => {
+  const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return
-
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: text.trim(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
+    setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'user', content: text.trim() }])
     setInput('')
     setIsLoading(true)
-
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text.trim(),
-          sessionId,
-          versionCode: version,
-          mode,
-        }),
+        body: JSON.stringify({ message: text.trim(), sessionId, versionCode: version, mode }),
       })
-
       const data = await res.json()
-
       if (!res.ok) throw new Error(data.error ?? 'Request failed')
-
       if (data.sessionId && !sessionId) setSessionId(data.sessionId)
-
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: data.content,
-        isCrisis: data.isCrisisResponse,
-      }
-
-      setMessages((prev) => [...prev, assistantMessage])
-    } catch (err) {
-      const errorMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(), role: 'assistant',
+        content: data.content, isCrisis: data.isCrisisResponse,
+      }])
+    } catch {
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(), role: 'assistant',
         content: "I'm having trouble connecting right now. Please try again in a moment.",
-      }
-      setMessages((prev) => [...prev, errorMessage])
+      }])
     } finally {
       setIsLoading(false)
       inputRef.current?.focus()
     }
-  }
+  }, [isLoading, sessionId, version, mode])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage(input)
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }
   }
 
-  return (
-    <div className="flex flex-col h-full min-h-0 bg-gray-50">
+  const currentMode = MODES.find(m => m.value === mode)!
 
-      {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between gap-3">
+  return (
+    <div className="flex flex-col h-full min-h-0" style={{ background: 'var(--bg-primary)' }}>
+
+      {/* HEADER */}
+      <header className="flex-shrink-0 px-4 py-2.5 flex items-center justify-between gap-3"
+              style={{ background: 'var(--header-bg)', borderBottom: '1px solid var(--border)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92650a" strokeWidth="1.5">
+          <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+               style={{ background: 'var(--accent-grad)' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5">
               <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
             </svg>
           </div>
-          <span className="font-semibold text-gray-900 text-sm">ScriptureGuide AI</span>
+          <span className="text-sm font-medium hidden sm:block" style={{ fontFamily: 'Lora, serif', color: 'var(--ink)' }}>
+            ScriptureGuide AI
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Bible version selector */}
-          <select
-            value={version}
-            onChange={(e) => setVersion(e.target.value as BibleVersionCode)}
-            className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
-          >
-            {FREE_VERSIONS.map((v) => (
-              <option key={v} value={v}>{v}</option>
-            ))}
-          </select>
+        {/* Mode pills */}
+        <div className="flex gap-1 overflow-x-auto flex-1 mx-2" style={{ scrollbarWidth: 'none' }}>
+          {MODES.map((m) => (
+            <button key={m.value} onClick={() => setMode(m.value)}
+              className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full transition-all"
+              style={mode === m.value
+                ? { background: 'var(--accent-grad)', color: 'white', fontWeight: 500 }
+                : { background: 'var(--bg-surface)', color: 'var(--ink-muted)', border: '1px solid var(--border)' }}>
+              {m.label}
+            </button>
+          ))}
+        </div>
 
-          {/* Mode toggle */}
-          <button
-            onClick={() => setMode(mode === 'standard' ? 'church' : 'standard')}
-            className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
-              mode === 'church'
-                ? 'bg-blue-50 border-blue-300 text-blue-700'
-                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {mode === 'church' ? 'Church mode' : 'Standard'}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <select value={version} onChange={(e) => setVersion(e.target.value as BibleVersionCode)}
+            className="text-xs px-2 py-1.5 rounded-lg outline-none"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--ink)' }}>
+            {FREE_VERSIONS.map(v => <option key={v} value={v}>{v}</option>)}
+          </select>
+          <button onClick={toggle}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-sm transition-colors"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--ink-muted)' }}>
+            {theme === 'dark' ? '☀' : '☽'}
           </button>
         </div>
       </header>
 
-      {/* ── DISCLAIMER ─────────────────────────────────────────────────── */}
-      <div className="px-4 pt-3">
-        <DisclaimerBanner />
+      {/* Mode description bar */}
+      <div className="flex-shrink-0 px-4 py-1.5 text-xs text-center"
+           style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-light)', color: 'var(--ink-faint)' }}>
+        {currentMode.desc}
       </div>
 
-      {/* ── MESSAGES ───────────────────────────────────────────────────── */}
+      <DisclaimerBanner />
+
+      {/* MESSAGES */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
 
-        {/* Empty state */}
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center px-4 pb-16 max-w-lg mx-auto w-full">
-
-            {/* Verse of the Day */}
             {votd && (
-              <div className="w-full bg-white border border-amber-200 border-l-4 border-l-amber-500 rounded-2xl px-5 py-4 mb-6 text-left">
-                <p className="text-xs font-medium text-amber-700 uppercase tracking-wide mb-2">Verse of the day</p>
-                <p className="text-sm italic text-gray-800 leading-relaxed mb-2">"{votd.text}"</p>
+              <div className="w-full rounded-2xl px-5 py-4 mb-6 text-left"
+                   style={{ background: 'var(--verse-bg)', border: '1px solid var(--border)', borderLeft: '3px solid var(--verse-border)' }}>
+                <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--accent)' }}>
+                  Verse of the day
+                </p>
+                <p className="text-sm leading-relaxed mb-2 verse-text" style={{ color: 'var(--ink)' }}>
+                  &ldquo;{votd.text}&rdquo;
+                </p>
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-gray-400">{votd.reference} ({votd.versionCode})</p>
-                  <button
-                    onClick={() => sendMessage(`Tell me more about ${votd.reference}`)}
-                    className="text-xs text-amber-700 hover:underline"
-                  >
-                    Explore this verse
+                  <p className="text-xs" style={{ color: 'var(--ink-faint)' }}>{votd.reference} ({votd.versionCode})</p>
+                  <button onClick={() => sendMessage(`Tell me more about ${votd.reference}`)}
+                    className="text-xs" style={{ color: 'var(--accent)' }}>
+                    Explore →
                   </button>
                 </div>
               </div>
             )}
-
-            <h2 className="text-lg font-semibold text-gray-800 mb-1">What's on your heart today?</h2>
-            <p className="text-sm text-gray-500 mb-5 max-w-sm">
+            <h2 className="text-lg font-semibold mb-1 font-serif" style={{ color: 'var(--ink)' }}>
+              What&apos;s on your heart today?
+            </h2>
+            <p className="text-sm mb-5" style={{ color: 'var(--ink-muted)' }}>
               Ask a Bible question, explore a passage, or look up what a Greek or Hebrew word really means.
             </p>
-
-            {/* Quick prompts */}
             <div className="flex flex-wrap gap-2 justify-center">
               {QUICK_PROMPTS.map((prompt) => (
-                <button
-                  key={prompt}
-                  onClick={() => sendMessage(prompt)}
-                  className="text-xs px-3 py-1.5 rounded-full border border-gray-200 bg-white text-gray-600 hover:border-amber-400 hover:text-amber-800 transition-colors"
-                >
+                <button key={prompt} onClick={() => sendMessage(prompt)}
+                  className="text-xs px-3 py-1.5 rounded-full transition-colors"
+                  style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--ink-muted)' }}>
                   {prompt}
                 </button>
               ))}
@@ -326,22 +389,23 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* Message list */}
-        {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
+        {messages.map((msg, i) => (
+          <MessageBubble
+            key={msg.id}
+            message={msg}
+            isLast={i === messages.length - 1 && msg.role === 'assistant'}
+            onFollowUp={sendMessage}
+          />
         ))}
 
-        {/* Typing indicator */}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-white border border-gray-200 border-l-4 border-l-amber-500 rounded-2xl rounded-tl-sm px-4 py-3">
+            <div className="rounded-2xl rounded-tl-sm px-4 py-3"
+                 style={{ background: 'var(--msg-ai-bg)', border: '1px solid var(--border)', borderLeft: '3px solid var(--msg-ai-border)' }}>
               <div className="flex gap-1.5 items-center h-4">
-                {[0, 150, 300].map((delay) => (
-                  <div
-                    key={delay}
-                    className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce"
-                    style={{ animationDelay: `${delay}ms` }}
-                  />
+                {[0, 150, 300].map(delay => (
+                  <div key={delay} className="w-1.5 h-1.5 rounded-full animate-bounce"
+                       style={{ background: 'var(--accent)', animationDelay: `${delay}ms` }} />
                 ))}
               </div>
             </div>
@@ -351,33 +415,40 @@ export default function ChatPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* ── INPUT ──────────────────────────────────────────────────────── */}
-      <div className="bg-white border-t border-gray-200 px-4 py-3 pb-20 md:pb-3">
+      {/* INPUT */}
+      <div className="flex-shrink-0 px-4 py-3 pb-20 md:pb-3"
+           style={{ background: 'var(--header-bg)', borderTop: '1px solid var(--border)' }}>
         <div className="flex gap-2 items-end max-w-3xl mx-auto">
           <textarea
             ref={inputRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask a Bible question… (Shift+Enter for new line)"
             rows={1}
-            className="flex-1 resize-none rounded-xl px-4 py-2.5 text-sm placeholder-stone-400 outline-none focus:ring-2 focus:ring-amber-400 transition-all"
-            style={{ background: "var(--background)", border: "1px solid var(--border-warm)", color: "var(--ink)", minHeight: '42px', maxHeight: '160px' }}
+            className="flex-1 resize-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 transition-all"
+            style={{
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border)',
+              color: 'var(--ink)',
+              minHeight: '42px',
+              maxHeight: '160px',
+            }}
           />
           <button
             onClick={() => sendMessage(input)}
             disabled={!input.trim() || isLoading}
-            className="flex-shrink-0 w-10 h-10 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:bg-gray-200 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors"
-            aria-label="Send message"
-          >
+            className="flex-shrink-0 w-10 h-10 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-all active:scale-95"
+            style={{ background: 'var(--accent-grad)' }}
+            aria-label="Send message">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
             </svg>
           </button>
         </div>
-        <p className="text-center text-xs text-gray-400 mt-2">
+        <p className="text-center text-xs mt-2" style={{ color: 'var(--ink-faint)' }}>
           ScriptureGuide AI can make mistakes. Always verify with Scripture.{' '}
-          <a href="/copyright" className="underline hover:text-gray-600">Bible copyrights</a>
+          <a href="/copyright" className="underline" style={{ color: 'var(--ink-faint)' }}>Bible copyrights</a>
         </p>
       </div>
     </div>

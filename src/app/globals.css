@@ -1,77 +1,113 @@
 @import "tailwindcss";
-
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
 
+/* ── LIGHT THEME (Slate & Sunrise) ─────────────────────────────────── */
 :root {
-  --background: #faf8f4;
-  --foreground: #1c1917;
-  --parchment: #f5f0e8;
-  --parchment-dark: #ede6d6;
-  --amber-warm: #92400e;
-  --amber-mid: #b45309;
-  --amber-light: #fef3c7;
-  --gold: #d97706;
-  --ink: #1c1917;
-  --ink-muted: #57534e;
-  --ink-faint: #a8a29e;
-  --border-warm: #e7e0d5;
-  --shadow-warm: rgba(146, 64, 14, 0.08);
+  --bg-primary:    #f4f6f9;
+  --bg-secondary:  #e8ecf2;
+  --bg-surface:    #dde3ed;
+  --bg-input:      #f4f6f9;
+  --accent:        #ea833a;
+  --accent-deep:   #c05e10;
+  --accent-grad:   linear-gradient(135deg, #c05e10, #ea833a);
+  --gold:          #ea833a;
+  --ink:           #1e2a3a;
+  --ink-muted:     #4a6080;
+  --ink-faint:     #8a9ab0;
+  --border:        #c8d0dc;
+  --border-light:  #dde3ed;
+  --sidebar-bg:    #e8ecf2;
+  --sidebar-border:#c8d0dc;
+  --msg-ai-bg:     #e8ecf2;
+  --msg-ai-border: #ea833a;
+  --verse-bg:      #e8ecf2;
+  --verse-border:  #ea833a;
+  --chip-bg:       #fff3e8;
+  --chip-border:   #fcd5b0;
+  --chip-text:     #92400e;
+  --suggest-bg:    #e8ecf2;
+  --suggest-hover: #dde3ed;
+  --header-bg:     #e8ecf2;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f0e0c;
-    --foreground: #f5f0e8;
-    --parchment: #1c1917;
-    --parchment-dark: #292524;
-    --border-warm: #292524;
-    --ink: #f5f0e8;
-    --ink-muted: #a8a29e;
-  }
+/* ── DARK THEME (Midnight & Gold) ───────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-primary:    #080d1a;
+  --bg-secondary:  #0f1729;
+  --bg-surface:    #1a2540;
+  --bg-input:      #1a2540;
+  --accent:        #d4af37;
+  --accent-deep:   #b8960c;
+  --accent-grad:   linear-gradient(135deg, #b8960c, #d4af37);
+  --gold:          #d4af37;
+  --ink:           #f0e6c8;
+  --ink-muted:     #a89878;
+  --ink-faint:     #5a6880;
+  --border:        #2a3a54;
+  --border-light:  #1f2d45;
+  --sidebar-bg:    #0f1729;
+  --sidebar-border:#2a3a54;
+  --msg-ai-bg:     #1a2540;
+  --msg-ai-border: #d4af37;
+  --verse-bg:      #1a2540;
+  --verse-border:  #d4af37;
+  --chip-bg:       #1f2a18;
+  --chip-border:   #3a4a28;
+  --chip-text:     #a8c878;
+  --suggest-bg:    #1a2540;
+  --suggest-hover: #1f2d45;
+  --header-bg:     #0f1729;
 }
 
 * { box-sizing: border-box; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg-primary);
+  color: var(--ink);
   font-family: 'Inter', sans-serif;
   font-size: 15px;
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .font-serif { font-family: 'Lora', Georgia, serif; }
+
+.verse-text {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  line-height: 1.8;
+}
 
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   background-image:
-    radial-gradient(ellipse at 20% 50%, rgba(251, 191, 36, 0.03) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(146, 64, 14, 0.03) 0%, transparent 50%);
+    radial-gradient(ellipse at 20% 50%, rgba(234,131,58,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(192,94,16,0.03) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
 
-.verse-text {
-  font-family: 'Lora', Georgia, serif;
-  font-style: italic;
-  line-height: 1.8;
-  color: var(--ink);
+[data-theme="dark"] body::before {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(212,175,55,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(184,150,12,0.03) 0%, transparent 50%);
 }
 
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-warm); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
 @keyframes messageIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.message-enter { animation: messageIn 0.25s ease-out forwards; }
+.message-enter { animation: messageIn 0.2s ease-out forwards; }
 
-@keyframes typingDot {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-  30%            { transform: translateY(-4px); opacity: 1; }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
+.fade-in { animation: fadeIn 0.3s ease-out forwards; }
