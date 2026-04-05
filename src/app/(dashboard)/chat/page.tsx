@@ -9,6 +9,15 @@ interface Message {
   role: 'user' | 'assistant'
   content: string
   isCrisis?: boolean
+  isNew?: boolean
+}
+
+interface SessionSummary {
+  id: string
+  title: string
+  date: string
+  messageCount: number
+  mode: string
 }
 
 interface VerseOfDay {
@@ -166,13 +175,14 @@ function SuggestedFollowUps({ onSelect }: { onSelect: (q: string) => void }) {
 function MessageBubble({ message, isLast, onFollowUp }: {
   message: Message; isLast: boolean; onFollowUp: (q: string) => void
 }) {
-  const isUser = message.role === 'user'
+   const isUser = message.role === 'user'
   const parsed = !isUser ? parseVerseCards(message.content) : null
   const chips  = !isUser ? parseGreekHebrew(message.content) : []
+  const animClass = message.isNew ? 'message-enter' : ''
 
   if (isUser) {
     return (
-      <div className="flex justify-end message-enter">
+      <div className={`flex justify-end ${animClass}`}>
         <div className="max-w-[80%] rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm leading-relaxed"
              style={{ background: 'var(--accent-grad)', color: 'white' }}>
           {message.content}
@@ -193,7 +203,7 @@ function MessageBubble({ message, isLast, onFollowUp }: {
     ))
 
   return (
-    <div className="flex justify-start message-enter">
+      <div className={`flex justify-start ${animClass}`}>
       <div className="max-w-[88%] space-y-1">
         <div className="rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed"
              style={message.isCrisis
@@ -224,7 +234,9 @@ export default function ChatPage() {
   const [sessionId, setSessionId] = useState<string | undefined>()
   const [version, setVersion]     = useState<BibleVersionCode>('KJV')
   const [mode, setMode]           = useState<ChatMode>('standard')
-  const [votd, setVotd]           = useState<VerseOfDay | null>(null)
+  const [votd, setVotd]               = useState<VerseOfDay | null>(null)
+  const [showHistory, setShowHistory] = useState(false)
+  const [history, setHistory]         = useState<SessionSummary[]>([])
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef  = useRef<HTMLTextAreaElement>(null)
 
@@ -244,7 +256,7 @@ export default function ChatPage() {
       .catch(() => null)
   }, [])
 
-  useEffect(() => {
+useEffect(() => {
     fetch('/api/chat/history')
       .then(r => r.json())
       .then(d => {
@@ -254,15 +266,23 @@ export default function ChatPage() {
             id: m.id,
             role: m.role.toLowerCase() as 'user' | 'assistant',
             content: m.content,
+            isNew: false,
           })))
         }
       })
       .catch(() => null)
   }, [])
 
+  useEffect(() => {
+    fetch('/api/chat/sessions')
+      .then(r => r.json())
+      .then(d => d.sessions && setHistory(d.sessions))
+      .catch(() => null)
+  }, [messages.length])
+
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return
-    setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'user', content: text.trim() }])
+    setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'user', content: text.trim(), isNew: true }])
     setInput('')
     setIsLoading(true)
     try {
@@ -276,18 +296,43 @@ export default function ChatPage() {
       if (data.sessionId && !sessionId) setSessionId(data.sessionId)
       setMessages(prev => [...prev, {
         id: crypto.randomUUID(), role: 'assistant',
-        content: data.content, isCrisis: data.isCrisisResponse,
+        content: data.content, isCrisis: data.isCrisisResponse, isNew: true,
       }])
     } catch {
       setMessages(prev => [...prev, {
         id: crypto.randomUUID(), role: 'assistant',
-        content: "I'm having trouble connecting right now. Please try again in a moment.",
+        content: "I'm having trouble connecting right now. Please try again in a moment.", isNew: true,
       }])
     } finally {
       setIsLoading(false)
       inputRef.current?.focus()
     }
   }, [isLoading, sessionId, version, mode])
+
+  const loadSession = useCallback(async (sid: string) => {
+    const res = await fetch('/api/chat/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: sid }),
+    })
+    const data = await res.json()
+    if (data.sessionId) {
+      setSessionId(data.sessionId)
+      setMessages(data.messages.map((m: { id: string; role: string; content: string }) => ({
+        id: m.id,
+        role: m.role.toLowerCase() as 'user' | 'assistant',
+        content: m.content,
+        isNew: false,
+      })))
+      setShowHistory(false)
+    }
+  }, [])
+
+  const startNewSession = () => {
+    setSessionId(undefined)
+    setMessages([])
+    setShowHistory(false)
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }
@@ -296,12 +341,80 @@ export default function ChatPage() {
   const currentMode = MODES.find(m => m.value === mode)!
 
   return (
-    <div className="flex flex-col h-full min-h-0" style={{ background: 'var(--bg-primary)' }}>
+    <div className="flex h-full min-h-0" style={{ background: 'var(--bg-primary)' }}>
+
+      {/* HISTORY SIDEBAR */}
+      {showHistory && (
+        <div className="w-64 flex-shrink-0 flex flex-col"
+             style={{ background: 'var(--sidebar-bg)', borderRight: '1px solid var(--border)' }}>
+          <div className="flex items-center justify-between px-4 py-3"
+               style={{ borderBottom: '1px solid var(--border)' }}>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--ink-faint)' }}>
+              Recent sessions
+            </span>
+            <button onClick={() => setShowHistory(false)}
+              className="text-xs px-2 py-1 rounded-lg"
+              style={{ color: 'var(--ink-faint)', background: 'var(--bg-surface)' }}>
+              ✕
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto py-2">
+            <button onClick={startNewSession}
+              className="w-full text-left px-4 py-2.5 text-xs flex items-center gap-2"
+              style={{ color: 'var(--accent)', borderBottom: '1px solid var(--border-light)' }}>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M8 1v14M1 8h14"/>
+              </svg>
+              New conversation
+            </button>
+
+            {history.length === 0 && (
+              <p className="text-xs px-4 py-6 text-center" style={{ color: 'var(--ink-faint)' }}>
+                No past sessions yet
+              </p>
+            )}
+
+            {history.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => loadSession(s.id)}
+                className="w-full text-left px-4 py-3 transition-colors border-l-2"
+                style={{
+                  borderLeftColor: s.id === sessionId ? 'var(--accent)' : 'transparent',
+                  background: s.id === sessionId ? 'rgba(234,131,58,0.08)' : 'transparent',
+                }}>
+                <p className="text-xs font-medium mb-0.5 leading-snug" style={{ color: 'var(--ink)' }}>
+                  {s.title}
+                </p>
+                <p className="text-xs" style={{ color: 'var(--ink-faint)' }}>
+                  {s.date} · {s.messageCount} messages
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* MAIN CHAT AREA */}
+      <div className="flex flex-col flex-1 min-w-0 h-full min-h-0">
 
       {/* HEADER */}
       <header className="flex-shrink-0 px-4 py-2.5 flex items-center justify-between gap-3"
               style={{ background: 'var(--header-bg)', borderBottom: '1px solid var(--border)' }}>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowHistory(h => !h)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+            style={{
+              background: showHistory ? 'rgba(234,131,58,0.15)' : 'var(--bg-surface)',
+              border: '1px solid var(--border)',
+              color: showHistory ? 'var(--accent)' : 'var(--ink-faint)'
+            }}
+            title="Session history">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M12 8v4l3 3M3.05 11a9 9 0 1 0 .5-3M3 4v4h4"/>
+            </svg>
+          </button>
           <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
                style={{ background: 'var(--accent-grad)' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5">
@@ -450,6 +563,8 @@ export default function ChatPage() {
           ScriptureGuide AI can make mistakes. Always verify with Scripture.{' '}
           <a href="/copyright" className="underline" style={{ color: 'var(--ink-faint)' }}>Bible copyrights</a>
         </p>
+      </div>
+
       </div>
     </div>
   )
