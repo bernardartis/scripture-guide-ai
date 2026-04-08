@@ -421,6 +421,10 @@ useEffect(() => {
               </div>
             ))}
 
+          </div>
+        </div>
+      )}
+
       {/* MAIN CHAT AREA */}
       <div className="flex flex-col flex-1 min-w-0 h-full min-h-0">
 
