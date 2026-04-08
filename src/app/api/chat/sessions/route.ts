@@ -89,3 +89,29 @@ export async function POST(req: Request) {
     mode: chatSession.mode,
   })
 }
+
+// DELETE — archive a session (soft delete)
+export async function DELETE(req: Request) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { sessionId } = await req.json()
+  if (!sessionId) return NextResponse.json({ error: 'sessionId required' }, { status: 400 })
+
+  const chatSession = await db.chatSession.findFirst({
+    where: { id: sessionId, userId: session.user.id },
+  })
+
+  if (!chatSession) {
+    return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+  }
+
+  await db.chatSession.update({
+    where: { id: sessionId },
+    data: { isArchived: true },
+  })
+
+  return NextResponse.json({ success: true })
+}

@@ -334,6 +334,22 @@ useEffect(() => {
     setShowHistory(false)
   }
 
+  const deleteSession = async (sid: string, e: React.MouseEvent) => {
+    e.stopPropagation() // prevent triggering loadSession
+    if (!confirm('Delete this conversation? It cannot be undone.')) return
+    await fetch('/api/chat/sessions', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: sid }),
+    })
+    setHistory(prev => prev.filter(s => s.id !== sid))
+    // If the deleted session is currently active, start fresh
+    if (sid === sessionId) {
+      setSessionId(undefined)
+      setMessages([])
+    }
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }
   }
@@ -374,27 +390,36 @@ useEffect(() => {
                 No past sessions yet
               </p>
             )}
-
+            
             {history.map((s) => (
-              <button
+              <div
                 key={s.id}
-                onClick={() => loadSession(s.id)}
-                className="w-full text-left px-4 py-3 transition-colors border-l-2"
+                className="flex items-start group border-l-2 transition-colors"
                 style={{
                   borderLeftColor: s.id === sessionId ? 'var(--accent)' : 'transparent',
                   background: s.id === sessionId ? 'rgba(234,131,58,0.08)' : 'transparent',
                 }}>
-                <p className="text-xs font-medium mb-0.5 leading-snug" style={{ color: 'var(--ink)' }}>
-                  {s.title}
-                </p>
-                <p className="text-xs" style={{ color: 'var(--ink-faint)' }}>
-                  {s.date} · {s.messageCount} messages
-                </p>
-              </button>
+                <button
+                  onClick={() => loadSession(s.id)}
+                  className="flex-1 text-left px-4 py-3 min-w-0">
+                  <p className="text-xs font-medium mb-0.5 leading-snug truncate" style={{ color: 'var(--ink)' }}>
+                    {s.title}
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--ink-faint)' }}>
+                    {s.date} · {s.messageCount} messages
+                  </p>
+                </button>
+                <button
+                  onClick={(e) => deleteSession(s.id, e)}
+                  className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-2 mt-2 mr-2 rounded-lg transition-all"
+                  style={{ color: 'var(--ink-faint)' }}
+                  title="Delete conversation">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 10h8L13 4"/>
+                  </svg>
+                </button>
+              </div>
             ))}
-          </div>
-        </div>
-      )}
 
       {/* MAIN CHAT AREA */}
       <div className="flex flex-col flex-1 min-w-0 h-full min-h-0">
