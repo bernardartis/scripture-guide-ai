@@ -159,7 +159,7 @@ function parseGreekHebrew(content: string): GreekHebrewChip[] {
 function DisclaimerBanner() {
   return (
     <div className="flex items-center gap-2.5 px-4 py-2 text-xs rounded-lg mx-4 mt-3 flex-shrink-0"
-         style={{ background: 'rgba(106,122,56,0.08)', border: '1px solid rgba(106,122,56,0.2)', color: 'var(--accent-deep)' }}>
+         style={{ background: 'rgba(46,58,89,0.08)', border: '1px solid rgba(46,58,89,0.15)', color: 'var(--accent-deep)' }}>
       <svg width="13" height="13" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
         <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2"/>
         <path d="M7 4v3.5M7 9.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
@@ -194,7 +194,7 @@ function VerseCard({ reference, text }: { reference: string; text: string }) {
       <div className="flex gap-2 flex-wrap">
         <button onClick={handleCopy}
           className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors"
-          style={{ background: copied ? 'rgba(106,122,56,0.15)' : 'var(--bg-surface)', color: copied ? 'var(--accent-deep)' : 'var(--ink-muted)', border: '1px solid var(--border)' }}>
+          style={{ background: copied ? 'rgba(46,58,89,0.12)' : 'var(--bg-surface)', color: copied ? 'var(--accent-deep)' : 'var(--ink-muted)', border: '1px solid var(--border)' }}>
           {copied ? '✓ Copied' : (
             <>
               <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -207,7 +207,7 @@ function VerseCard({ reference, text }: { reference: string; text: string }) {
         </button>
         <button onClick={() => setBookmarked(true)}
           className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors"
-          style={{ background: bookmarked ? 'rgba(106,122,56,0.15)' : 'var(--bg-surface)', color: bookmarked ? 'var(--accent-deep)' : 'var(--ink-muted)', border: '1px solid var(--border)' }}>
+          style={{ background: bookmarked ? 'rgba(46,58,89,0.12)' : 'var(--bg-surface)', color: bookmarked ? 'var(--accent-deep)' : 'var(--ink-muted)', border: '1px solid var(--border)' }}>
           <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M3 2h10v13l-5-3-5 3V2z"/>
           </svg>
@@ -262,7 +262,7 @@ function MessageBubble({ message, isLast, onFollowUp, mode }: {
     return (
       <div className={`flex justify-end ${animClass}`}>
         <div className="max-w-[80%] rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm leading-relaxed"
-             style={{ background: 'var(--accent-grad)', color: 'white' }}>
+             style={{ background: 'var(--accent-user)', color: 'white' }}>
           {message.content}
         </div>
       </div>
@@ -524,7 +524,7 @@ export default function ChatPage() {
                 className="flex items-start group border-l-2 transition-colors"
                 style={{
                   borderLeftColor: s.id === sessionId ? 'var(--accent)' : 'transparent',
-                  background: s.id === sessionId ? 'rgba(106,122,56,0.08)' : 'transparent',
+                  background: s.id === sessionId ? 'rgba(46,58,89,0.08)' : 'transparent',
                 }}>
                 <button onClick={() => loadSession(s.id)}
                   className="flex-1 text-left px-4 py-3 min-w-0">
@@ -559,7 +559,7 @@ export default function ChatPage() {
             <button onClick={() => setShowHistory(h => !h)}
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
               style={{
-                background: showHistory ? 'rgba(106,122,56,0.15)' : 'var(--bg-surface)',
+                background: showHistory ? 'rgba(46,58,89,0.12)' : 'var(--bg-surface)',
                 border: '1px solid var(--border)',
                 color: showHistory ? 'var(--accent)' : 'var(--ink-faint)'
               }}
@@ -585,7 +585,7 @@ export default function ChatPage() {
               <button key={m.value} onClick={() => setMode(m.value)}
                 className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full transition-all"
                 style={mode === m.value
-                  ? { background: 'var(--accent-grad)', color: 'white', fontWeight: 500 }
+                  ? { background: 'var(--accent-user)', color: 'white', fontWeight: 500 }
                   : { background: 'var(--bg-surface)', color: 'var(--ink-muted)', border: '1px solid var(--border)' }}>
                 {m.label}
               </button>

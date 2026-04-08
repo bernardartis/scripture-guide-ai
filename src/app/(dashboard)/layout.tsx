@@ -69,7 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link key={item.href} href={item.href}
                 className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors"
                 style={isActive
-                  ? { background: 'rgba(106,122,56,0.12)', color: 'var(--accent-deep)' }
+                  ? { background: 'rgba(46,58,89,0.12)', color: 'var(--accent-deep)' }
                   : { color: 'var(--ink-muted)' }}>
                 <span style={{ color: isActive ? 'var(--accent)' : 'var(--ink-faint)' }}>{item.icon}</span>
                 {item.label}

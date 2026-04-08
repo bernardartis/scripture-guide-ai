@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Emmaus" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#3d4a20" />
+        <meta name="theme-color" content="#2E3A59" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
       </head>
       <body className="min-h-full flex flex-col">
