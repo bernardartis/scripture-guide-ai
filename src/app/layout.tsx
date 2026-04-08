@@ -7,18 +7,18 @@ const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'ScriptureGuide AI — Your Bible Study Companion',
-  description: 'AI-powered Bible study tool. Explore Scripture, understand original Greek and Hebrew word meanings, and find biblical guidance across all Christian denominations.',
-  keywords: ['Bible study', 'Scripture', 'AI', 'Christian', 'Bible app', 'Greek Hebrew'],
+  title: 'Emmaus — Walk with the Word',
+  description: 'Bring your questions, your struggles, and your doubts. Walk with the Word — wherever you are on the road. AI-powered Scripture guidance for believers, seekers, and pastors.',
+  keywords: ['Bible study', 'Scripture', 'AI', 'Christian', 'faith', 'grief', 'anxiety', 'pastor'],
   openGraph: {
-    title: 'ScriptureGuide AI',
-    description: 'Explore the Bible with confidence',
+    title: 'Emmaus',
+    description: 'Walk with the Word',
     type: 'website',
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'ScriptureGuide AI',
+    title: 'Emmaus',
   },
   formatDetection: { telephone: false },
 }
@@ -29,9 +29,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="ScriptureGuide AI" />
+        <meta name="apple-mobile-web-app-title" content="Emmaus" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#c05e10" />
+        <meta name="theme-color" content="#3d4a20" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
       </head>
       <body className="min-h-full flex flex-col">

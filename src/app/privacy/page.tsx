@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — ScriptureGuide AI',
+  title: 'Privacy Policy — Emmaus',
 }
 
 const EFFECTIVE_DATE = 'April 2, 2026'
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
 
         <div className="mb-10">
           <Link href="/" className="text-sm text-amber-700 hover:underline mb-4 block">
-            ← Back to ScriptureGuide AI
+            ← Back to Emmaus
           </Link>
           <h1 className="text-3xl font-semibold text-gray-900 mb-2">Privacy Policy</h1>
           <p className="text-sm text-gray-500">Effective date: {EFFECTIVE_DATE}</p>
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-base font-semibold text-gray-900 mb-3">1. Who we are</h2>
             <p className="text-gray-700">
-              ScriptureGuide AI, Inc. ("we," "us," or "our") operates the ScriptureGuide AI
+              Emmaus, Inc. ("we," "us," or "our") operates the Emmaus
               Bible study service. We are the data controller for personal data collected through
               the Service. Contact us at{' '}
               <a href={`mailto:${CONTACT_EMAIL}`} className="text-amber-700 underline">{CONTACT_EMAIL}</a>.

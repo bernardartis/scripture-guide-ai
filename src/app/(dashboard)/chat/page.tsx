@@ -88,7 +88,7 @@ function DisclaimerBanner() {
         <path d="M7 4v3.5M7 9.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
       </svg>
       <span>
-        <strong>ScriptureGuide AI</strong> is an AI Bible reference tool — not a licensed pastor, counselor, or therapist.
+        <strong>Emmaus</strong> is an AI Bible reference tool — not a licensed pastor, counselor, or therapist.
         Mental health emergencies: call or text <strong>988</strong>.
       </span>
     </div>
@@ -451,7 +451,7 @@ useEffect(() => {
             </svg>
           </div>
           <span className="text-sm font-medium hidden sm:block" style={{ fontFamily: 'Lora, serif', color: 'var(--ink)' }}>
-            ScriptureGuide AI
+            Emmaus
           </span>
         </div>
 
@@ -589,7 +589,7 @@ useEffect(() => {
           </button>
         </div>
         <p className="text-center text-xs mt-2" style={{ color: 'var(--ink-faint)' }}>
-          ScriptureGuide AI can make mistakes. Always verify with Scripture.{' '}
+          Emmaus can make mistakes. Always verify with Scripture.{' '}
           <a href="/copyright" className="underline" style={{ color: 'var(--ink-faint)' }}>Bible copyrights</a>
         </p>
       </div>

@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service — ScriptureGuide AI',
+  title: 'Terms of Service — Emmaus',
 }
 
 const EFFECTIVE_DATE = 'April 2, 2026'
@@ -18,7 +18,7 @@ export default function TermsPage() {
         {/* Header */}
         <div className="mb-10">
           <Link href="/" className="text-sm text-amber-700 hover:underline mb-4 block">
-            ← Back to ScriptureGuide AI
+            ← Back to Emmaus
           </Link>
           <h1 className="text-3xl font-semibold text-gray-900 mb-2">Terms of Service</h1>
           <p className="text-sm text-gray-500">Effective date: {EFFECTIVE_DATE}</p>
@@ -29,9 +29,9 @@ export default function TermsPage() {
           <section>
             <h2 className="text-base font-semibold text-gray-900 mb-3">1. Agreement to terms</h2>
             <p className="text-gray-700">
-              By creating an account or using ScriptureGuide AI ("the Service"), you agree to these
+              By creating an account or using Emmaus ("the Service"), you agree to these
               Terms of Service. If you do not agree, do not use the Service. These Terms constitute
-              a binding legal agreement between you and ScriptureGuide AI, Inc. ("we," "us," or "our"),
+              a binding legal agreement between you and Emmaus, Inc. ("we," "us," or "our"),
               a Texas limited liability company.
             </p>
           </section>
@@ -39,14 +39,14 @@ export default function TermsPage() {
           <section>
             <h2 className="text-base font-semibold text-gray-900 mb-3">2. Description of service</h2>
             <p className="text-gray-700 mb-3">
-              ScriptureGuide AI is an AI-powered Bible study and Scripture reference tool.
+              Emmaus is an AI-powered Bible study and Scripture reference tool.
               It is designed to help users explore biblical text, understand original language
               meanings, and find Scripture relevant to their questions.
             </p>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <p className="text-amber-900 font-medium text-sm mb-1">Important limitation</p>
               <p className="text-amber-800 text-sm">
-                ScriptureGuide AI is <strong>not</strong> a licensed pastor, ordained minister,
+                Emmaus is <strong>not</strong> a licensed pastor, ordained minister,
                 counselor, therapist, psychologist, psychiatrist, medical doctor, or legal advisor.
                 No pastoral, counseling, medical, or legal relationship is created by your use of
                 this Service. For mental health emergencies, call or text <strong>988</strong>.
@@ -191,7 +191,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-base font-semibold text-gray-900 mb-3">14. Contact</h2>
             <p className="text-gray-700">
-              ScriptureGuide AI, Inc.<br />
+              Emmaus, Inc.<br />
               McKinney, Texas<br />
               <a href={`mailto:${CONTACT_EMAIL}`} className="text-amber-700 underline">{CONTACT_EMAIL}</a>
             </p>

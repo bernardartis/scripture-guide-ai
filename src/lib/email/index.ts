@@ -5,7 +5,7 @@
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM   = process.env.EMAIL_FROM ?? 'ScriptureGuide AI <noreply@digsbs.com>'
+const FROM   = process.env.EMAIL_FROM ?? 'Emmaus <noreply@digsbs.com>'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://digsbs.com'
 
 // ─── WELCOME EMAIL ────────────────────────────────────────────────────────────
@@ -14,7 +14,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
   return resend.emails.send({
     from:    FROM,
     to,
-    subject: 'Welcome to ScriptureGuide AI',
+    subject: 'Welcome to Emmaus',
     html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -24,7 +24,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
 
     <!-- Header -->
     <div style="background:#7c2d12;padding:32px 32px 24px;">
-      <p style="color:#fde68a;font-size:13px;margin:0 0 4px;letter-spacing:0.05em;text-transform:uppercase;">ScriptureGuide AI</p>
+      <p style="color:#fde68a;font-size:13px;margin:0 0 4px;letter-spacing:0.05em;text-transform:uppercase;">Emmaus</p>
       <h1 style="color:#ffffff;font-size:22px;margin:0;font-weight:normal;line-height:1.4;">Welcome, ${name}</h1>
     </div>
 
@@ -45,11 +45,11 @@ export async function sendWelcomeEmail(to: string, name: string) {
 
       <a href="${APP_URL}/chat"
          style="display:inline-block;background:#b45309;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:500;">
-        Open ScriptureGuide AI
+        Open Emmaus
       </a>
 
       <p style="color:#9ca3af;font-size:12px;line-height:1.6;margin:28px 0 0;">
-        ScriptureGuide AI is a Bible reference tool, not a counseling service.
+        Emmaus is a Bible reference tool, not a counseling service.
         For mental health emergencies, please call or text <strong>988</strong>.
       </p>
     </div>
@@ -57,7 +57,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
     <!-- Footer -->
     <div style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 32px;">
       <p style="color:#9ca3af;font-size:11px;margin:0;">
-        ScriptureGuide AI · <a href="${APP_URL}/unsubscribe" style="color:#9ca3af;">Unsubscribe</a> ·
+        Emmaus · <a href="${APP_URL}/unsubscribe" style="color:#9ca3af;">Unsubscribe</a> ·
         <a href="${APP_URL}/copyright" style="color:#9ca3af;">Bible copyrights</a>
       </p>
     </div>
@@ -79,7 +79,7 @@ export async function sendSubscriptionConfirmation(
   return resend.emails.send({
     from:    FROM,
     to,
-    subject: `Your ${planName} subscription is active — ScriptureGuide AI`,
+    subject: `Your ${planName} subscription is active — Emmaus`,
     html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -88,13 +88,13 @@ export async function sendSubscriptionConfirmation(
   <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;">
 
     <div style="background:#7c2d12;padding:32px 32px 24px;">
-      <p style="color:#fde68a;font-size:13px;margin:0 0 4px;">ScriptureGuide AI</p>
+      <p style="color:#fde68a;font-size:13px;margin:0 0 4px;">Emmaus</p>
       <h1 style="color:#ffffff;font-size:22px;margin:0;font-weight:normal;">Your subscription is active</h1>
     </div>
 
     <div style="padding:32px;">
       <p style="color:#374151;font-size:16px;line-height:1.7;margin:0 0 24px;">
-        Hi ${name}, your <strong>${planName}</strong> plan is now active. Thank you for supporting ScriptureGuide AI.
+        Hi ${name}, your <strong>${planName}</strong> plan is now active. Thank you for supporting Emmaus.
       </p>
 
       <!-- Subscription details box -->
@@ -118,7 +118,7 @@ export async function sendSubscriptionConfirmation(
       <!-- FTC required disclosure -->
       <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0 0 20px;background:#f9fafb;border-radius:8px;padding:14px;">
         Your subscription renews automatically on ${renewalDate}. To cancel, go to
-        <a href="${APP_URL}/billing" style="color:#b45309;">ScriptureGuide AI → Billing → Manage subscription</a>.
+        <a href="${APP_URL}/billing" style="color:#b45309;">Emmaus → Billing → Manage subscription</a>.
         Cancellation takes effect at the end of your current billing period.
       </p>
 
@@ -130,7 +130,7 @@ export async function sendSubscriptionConfirmation(
 
     <div style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 32px;">
       <p style="color:#9ca3af;font-size:11px;margin:0;">
-        ScriptureGuide AI · <a href="${APP_URL}/billing" style="color:#9ca3af;">Manage subscription</a> ·
+        Emmaus · <a href="${APP_URL}/billing" style="color:#9ca3af;">Manage subscription</a> ·
         <a href="${APP_URL}/copyright" style="color:#9ca3af;">Bible copyrights</a>
       </p>
     </div>
@@ -151,17 +151,17 @@ export async function sendAnnualRenewalReminder(
   return resend.emails.send({
     from:    FROM,
     to,
-    subject: `Your ScriptureGuide AI annual subscription renews on ${renewalDate}`,
+    subject: `Your Emmaus annual subscription renews on ${renewalDate}`,
     html: `
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f9fafb;font-family:Georgia,serif;">
   <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:12px;border:1px solid #e5e7eb;padding:32px;">
-    <p style="color:#92400e;font-size:13px;margin:0 0 8px;">ScriptureGuide AI</p>
+    <p style="color:#92400e;font-size:13px;margin:0 0 8px;">Emmaus</p>
     <h1 style="font-size:20px;color:#1f2937;margin:0 0 20px;font-weight:normal;">Subscription renewal reminder</h1>
     <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 16px;">
-      Hi ${name}, your annual ScriptureGuide AI subscription will automatically renew on
+      Hi ${name}, your annual Emmaus subscription will automatically renew on
       <strong>${renewalDate}</strong> for <strong>${amount}</strong>.
     </p>
     <p style="color:#6b7280;font-size:14px;line-height:1.6;margin:0 0 24px;">

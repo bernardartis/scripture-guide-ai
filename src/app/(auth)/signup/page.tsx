@@ -44,7 +44,7 @@ export default function SignupPage() {
 
     // COPPA: block under-13 entirely
     if (age < 13) {
-      setError('ScriptureGuide AI requires users to be at least 13 years old.')
+      setError('Emmaus requires users to be at least 13 years old.')
       return
     }
 
@@ -220,7 +220,7 @@ export default function SignupPage() {
                     className="mt-0.5 h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500 flex-shrink-0"
                   />
                   <span className="text-xs text-amber-900 leading-relaxed">
-                    <strong>Optional:</strong> I consent to ScriptureGuide AI storing my denomination preference
+                    <strong>Optional:</strong> I consent to Emmaus storing my denomination preference
                     and chat history to personalize my Bible study experience. This is religious belief data
                     protected under GDPR Article 9 and California CPRA. You can withdraw this consent
                     at any time in Settings.
@@ -229,7 +229,7 @@ export default function SignupPage() {
               </div>
 
               <p className="text-xs text-gray-500 leading-relaxed">
-                ScriptureGuide AI is a Bible reference tool, not a counseling service. For mental health emergencies, call or text <strong>988</strong>.
+                Emmaus is a Bible reference tool, not a counseling service. For mental health emergencies, call or text <strong>988</strong>.
               </p>
 
               {error && (

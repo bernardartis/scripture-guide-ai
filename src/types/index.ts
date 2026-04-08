@@ -1,4 +1,4 @@
-// ScriptureGuide AI — Core TypeScript Types
+// Emmaus — Core TypeScript Types
 
 // ─── BIBLE CONTENT ────────────────────────────────────────────────────────────
 

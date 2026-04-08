@@ -5,7 +5,7 @@
 import { getCopyrightPageData } from '@/lib/bible/router'
 
 export const metadata = {
-  title: 'Bible Translation Copyrights — ScriptureGuide AI',
+  title: 'Bible Translation Copyrights — Emmaus',
 }
 
 export default function CopyrightPage() {
@@ -15,7 +15,7 @@ export default function CopyrightPage() {
     <main className="max-w-2xl mx-auto px-6 py-12">
       <h1 className="text-2xl font-semibold mb-2">Bible translation copyrights</h1>
       <p className="text-gray-600 mb-8 text-sm">
-        ScriptureGuide AI displays Bible verses from the following translations.
+        Emmaus displays Bible verses from the following translations.
         Public domain translations are free to use without restriction.
         Licensed translations are used with permission from their copyright holders.
       </p>

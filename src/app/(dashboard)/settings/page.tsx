@@ -201,7 +201,7 @@ export default function SettingsPage() {
               className="mt-0.5 h-4 w-4 rounded accent-amber-600 flex-shrink-0"
             />
             <span className="text-sm text-gray-700 leading-relaxed">
-              Allow ScriptureGuide AI to store my denomination preference and chat history
+              Allow Emmaus to store my denomination preference and chat history
               to personalize my Bible study experience.
             </span>
           </label>

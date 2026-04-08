@@ -60,7 +60,7 @@ export async function GET() {
   const exportData = {
     exportedAt:      new Date().toISOString(),
     exportVersion:   '1.0',
-    dataController:  'ScriptureGuide AI',
+    dataController:  'Emmaus',
     legalBasis:      'GDPR Article 15 / CCPA right to access',
 
     account: user,

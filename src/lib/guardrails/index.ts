@@ -144,4 +144,4 @@ export function runOutputGuardrails(aiResponse: string): {
 
 // ─── JAILBREAK DEFENSE RESPONSE ───────────────────────────────────────────────
 
-export const JAILBREAK_RESPONSE = "I'm ScriptureGuide AI, and I'm here to help you explore the Bible. I can't change my core configuration, but I'd love to help you with a Scripture question instead. What's on your heart today?"
+export const JAILBREAK_RESPONSE = "I'm Emmaus, and I'm here to help you explore the Bible. I can't change my core configuration, but I'd love to help you with a Scripture question instead. What's on your heart today?"

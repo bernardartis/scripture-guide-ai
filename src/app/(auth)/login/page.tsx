@@ -9,63 +9,79 @@ function LoginPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') ?? '/chat'
-
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [email, setEmail]         = useState('')
+  const [password, setPassword]   = useState('')
+  const [error, setError]         = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setIsLoading(true)
-
+    e.preventDefault(); setError(''); setIsLoading(true)
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setError('Invalid email or password. Please try again.')
-      } else {
-        router.push(callbackUrl)
-        router.refresh()
-      }
-    } catch {
-      setError('Something went wrong. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleGoogle = () => {
-    signIn('google', { callbackUrl })
+      const result = await signIn('credentials', { email, password, redirect: false })
+      if (result?.error) { setError('Invalid email or password. Please try again.') }
+      else { router.push(callbackUrl); router.refresh() }
+    } catch { setError('Something went wrong. Please try again.') }
+    finally { setIsLoading(false) }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center mx-auto mb-3">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#92650a" strokeWidth="1.5">
-              <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+    <div className="min-h-screen flex" style={{ background: 'var(--bg-primary)' }}>
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden"
+           style={{ background: 'linear-gradient(160deg, #1a2010 0%, #2d3a18 50%, #1a2010 100%)' }}>
+        <div className="absolute inset-0 opacity-07"
+             style={{ backgroundImage: 'radial-gradient(circle, #6a7a38 1px, transparent 1px)', backgroundSize: '32px 32px' }}/>
+        <div className="absolute inset-0 flex items-center justify-center opacity-5">
+          <svg width="300" height="300" viewBox="0 0 300 300" fill="none">
+            <circle cx="150" cy="120" r="70" fill="#6a7a38"/>
+            <circle cx="150" cy="120" r="35" fill="#f8f5ee"/>
+            <path d="M150 190 C150 190 90 230 90 260 Q90 290 150 290 Q210 290 210 260 C210 230 150 190 150 190Z" fill="#6a7a38"/>
+          </svg>
+        </div>
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center"
+               style={{ background: 'linear-gradient(135deg, #3d4a20, #6a7a38)', border: '1px solid rgba(106,122,56,0.5)' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5">
+              <path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/>
+              <circle cx="12" cy="10" r="3" fill="white" stroke="none"/>
             </svg>
           </div>
-          <h1 className="text-xl font-semibold text-gray-900">ScriptureGuide AI</h1>
-          <p className="text-sm text-gray-500 mt-1">Sign in to your account</p>
+          <span className="font-medium" style={{ fontFamily: 'Lora, serif', color: '#d8e8b0' }}>Emmaus</span>
         </div>
+        <div className="relative z-10 space-y-8">
+          {[
+            { ref: 'Luke 24:32', text: 'Were not our hearts burning within us while he talked with us on the road and opened the Scriptures to us?' },
+            { ref: 'Matthew 11:28', text: 'Come to me, all you who are weary and burdened, and I will give you rest.' },
+          ].map((v) => (
+            <div key={v.ref} style={{ borderLeft: '2px solid rgba(106,122,56,0.5)', paddingLeft: '20px' }}>
+              <p className="text-sm leading-relaxed italic" style={{ color: 'rgba(220,232,180,0.85)', fontFamily: 'Lora, serif' }}>
+                &ldquo;{v.text}&rdquo;
+              </p>
+              <p className="text-xs mt-2" style={{ color: 'rgba(168,184,112,0.8)' }}>{v.ref}</p>
+            </div>
+          ))}
+        </div>
+        <p className="relative z-10 text-xs" style={{ color: 'rgba(138,144,96,0.6)' }}>
+          Walk with the Word · Not a counseling service · Crisis: call or text 988
+        </p>
+      </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-
-          {/* Google OAuth */}
-          <button
-            onClick={handleGoogle}
-            className="w-full flex items-center justify-center gap-2.5 border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors mb-4"
-          >
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          <div className="lg:hidden flex items-center gap-2.5 mb-8 justify-center">
+            <div className="w-9 h-9 rounded-full flex items-center justify-center"
+                 style={{ background: 'linear-gradient(135deg, #3d4a20, #6a7a38)' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5">
+                <path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/>
+                <circle cx="12" cy="10" r="3" fill="white" stroke="none"/>
+              </svg>
+            </div>
+            <span className="font-semibold text-stone-800" style={{ fontFamily: 'Lora, serif' }}>Emmaus</span>
+          </div>
+          <h1 className="text-2xl font-semibold text-stone-900 mb-1" style={{ fontFamily: 'Lora, serif' }}>Welcome back</h1>
+          <p className="text-sm text-stone-500 mb-8">Continue your walk with the Word</p>
+          <button onClick={() => signIn('google', { callbackUrl })}
+            className="w-full flex items-center justify-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors mb-5"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
             <svg width="18" height="18" viewBox="0 0 18 18">
               <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
               <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
@@ -74,75 +90,57 @@ function LoginPageInner() {
             </svg>
             Continue with Google
           </button>
-
-          <div className="relative mb-4">
+          <div className="relative mb-5">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
+              <div className="w-full border-t" style={{ borderColor: 'var(--border)' }}/>
             </div>
-            <div className="relative flex justify-center text-xs text-gray-400 bg-white px-2">or</div>
+            <div className="relative flex justify-center">
+              <span className="px-3 text-xs text-stone-400" style={{ background: 'var(--bg-primary)' }}>or</span>
+            </div>
           </div>
-
-          {/* Email / password form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                className="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-                placeholder="you@example.com"
-              />
+              <label className="block text-xs font-medium text-stone-600 mb-1.5">Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                required autoComplete="email" placeholder="you@example.com"
+                className="w-full rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-400 outline-none transition-all focus:ring-2 focus:ring-green-600"
+                style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)' }}/>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                className="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-                placeholder="••••••••"
-              />
+              <label className="block text-xs font-medium text-stone-600 mb-1.5">Password</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                required autoComplete="current-password" placeholder="••••••••"
+                className="w-full rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-400 outline-none transition-all focus:ring-2 focus:ring-green-600"
+                style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)' }}/>
             </div>
-
             {error && (
-              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                {error}
-              </p>
+              <div className="rounded-xl px-4 py-3 text-xs text-red-700 bg-red-50 border border-red-200">{error}</div>
             )}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white font-medium rounded-xl py-2.5 text-sm transition-colors"
-            >
-              {isLoading ? 'Signing in…' : 'Sign in'}
+            <button type="submit" disabled={isLoading}
+              className="w-full py-3 rounded-xl text-sm font-medium text-white transition-all active:scale-95"
+              style={{ background: isLoading ? '#8a9a60' : 'linear-gradient(135deg, #3d4a20, #6a7a38)' }}>
+              {isLoading ? 'Signing in…' : 'Sign in to Emmaus'}
             </button>
           </form>
+          <p className="text-center text-sm text-stone-500 mt-6">
+            Don&apos;t have an account?{' '}
+            <Link href="/signup" className="font-medium hover:underline" style={{ color: '#6a7a38' }}>
+              Sign up free
+            </Link>
+          </p>
         </div>
-
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Don't have an account?{' '}
-          <Link href="/signup" className="text-amber-700 font-medium hover:underline">
-            Sign up free
-          </Link>
-        </p>
-
-        <p className="text-center text-xs text-gray-400 mt-6 leading-relaxed">
-          ScriptureGuide AI is a Bible reference tool, not a counseling service.
-          For mental health emergencies, call or text <strong>988</strong>.
-        </p>
       </div>
     </div>
   )
 }
+
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#6a7a38', borderTopColor: 'transparent' }}/>
+      </div>
+    }>
       <LoginPageInner />
     </Suspense>
   )
