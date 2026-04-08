@@ -37,24 +37,25 @@ interface GreekHebrewChip {
 const FREE_VERSIONS: BibleVersionCode[] = ['KJV', 'WEB', 'BSB', 'ASV', 'YLT']
 
 const MODES: { value: ChatMode; label: string; desc: string }[] = [
-  { value: 'standard',   label: 'Standard',  desc: 'General Bible study for all levels' },
-  { value: 'church',     label: 'Church',     desc: 'Quick references for sermon use' },
-  { value: 'youth',      label: 'Youth',      desc: 'Plain language for younger readers' },
-  { value: 'deep_study', label: 'Deep Study', desc: 'Seminary-level Greek & Hebrew analysis' },
+  { value: 'standard',   label: 'Standard',   desc: 'Scripture guidance for every season of life' },
+  { value: 'church',     label: 'Pastor',      desc: 'Sermon prep and pastoral guidance' },
+  { value: 'youth',      label: 'Youth',       desc: 'Plain language for every reader' },
+  { value: 'deep_study', label: 'Deep Study',  desc: 'Seminary-level Greek & Hebrew analysis' },
 ]
 
 const QUICK_PROMPTS = [
-  'What does the Bible say about anxiety?',
-  'Explain grace in simple terms',
-  'What is the meaning of John 3:16?',
-  'What does the Hebrew word shalom mean?',
-  'How should I handle forgiveness?',
+  "I'm struggling with anxiety and fear",
+  "I don't know if I believe anymore",
+  "My marriage is falling apart",
+  "Help me prepare Sunday's sermon",
+  "I've been sober 6 months and I'm scared",
+  "What does the Bible say about grief?",
 ]
 
 const SUGGESTED_FOLLOWUPS = [
-  'What is the original Greek or Hebrew word here?',
-  'What cross-references relate to this passage?',
-  'How do different denominations interpret this?',
+  'What does the original Greek or Hebrew say here?',
+  'Are there other passages that speak to this struggle?',
+  'How do I pray through what you just shared?',
 ]
 
 function parseVerseCards(content: string): { hasVerse: boolean; reference?: string; verseText?: string } {
@@ -517,7 +518,7 @@ useEffect(() => {
               What&apos;s on your heart today?
             </h2>
             <p className="text-sm mb-5" style={{ color: 'var(--ink-muted)' }}>
-              Ask a Bible question, explore a passage, or look up what a Greek or Hebrew word really means.
+              Bring your questions, your struggles, your doubts. Walk with the Word — wherever you are on the road.
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
               {QUICK_PROMPTS.map((prompt) => (
