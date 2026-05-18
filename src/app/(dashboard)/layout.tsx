@@ -42,7 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { theme, toggle } = useTheme()
 
   return (
-    <div className="flex h-screen-safe overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
+    <div className="app-shell" style={{ background: 'var(--bg-primary)' }}>
 
       <aside className="hidden md:flex flex-col w-60 flex-shrink-0"
              style={{ background: 'var(--sidebar-bg)', borderRight: '1px solid var(--sidebar-border)' }}>
@@ -103,8 +103,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex"
-           style={{ height: '64px', paddingBottom: 'env(safe-area-inset-bottom)', background: 'var(--sidebar-bg)', borderTop: '1px solid var(--border)' }}>
+      <nav className="md:hidden flex flex-shrink-0"
+           style={{ height: '64px', background: 'var(--sidebar-bg)', borderTop: '1px solid var(--border)' }}>
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href
           return (
@@ -132,7 +132,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </button>
       </nav>
 
-      <main className="flex-1 overflow-y-auto flex flex-col">
+      <main className="flex-1 flex flex-col min-h-0">
         {children}
       </main>
     </div>

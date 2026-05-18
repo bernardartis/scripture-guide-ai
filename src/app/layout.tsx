@@ -34,6 +34,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#2E3A59" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+        <script dangerouslySetInnerHTML={{ __html: `
+  function setAppHeight() {
+    document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+  }
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
+  window.addEventListener('orientationchange', setAppHeight);
+` }} />
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>

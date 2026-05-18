@@ -114,10 +114,6 @@ body::before {
 }
 .fade-in { animation: fadeIn 0.3s ease-out forwards; }
 
-.h-screen-safe {
-  height: 100vh;
-}
-
 /* iOS safe area support */
 @supports (padding: max(0px)) {
   .pb-safe {
@@ -128,4 +124,33 @@ body::before {
 body {
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
+}
+
+:root {
+  --app-height: 100vh;
+}
+
+.app-shell {
+  height: var(--app-height);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .app-shell {
+    flex-direction: row;
+  }
+}
+
+.messages-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.input-anchor {
+  flex-shrink: 0;
+  width: 100%;
 }
