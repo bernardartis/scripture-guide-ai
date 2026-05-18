@@ -378,7 +378,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     const el = inputRef.current
-    if (el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px' }
+    if (el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px' }
   }, [input])
 
   useEffect(() => {
@@ -414,7 +414,12 @@ export default function ChatPage() {
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return
-    setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'user', content: text.trim(), isNew: true }])
+    const assistantId = crypto.randomUUID()
+    setMessages(prev => [
+      ...prev,
+      { id: crypto.randomUUID(), role: 'user', content: text.trim(), isNew: true },
+      { id: assistantId, role: 'assistant', content: '', isNew: true },
+    ])
     setInput('')
     setIsLoading(true)
     try {
@@ -423,18 +428,53 @@ export default function ChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text.trim(), sessionId, versionCode: version, mode }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Request failed')
-      if (data.sessionId && !sessionId) setSessionId(data.sessionId)
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(), role: 'assistant',
-        content: data.content, isCrisis: data.isCrisisResponse, isNew: true,
-      }])
-    } catch {
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(), role: 'assistant',
-        content: "I'm having trouble connecting right now. Please try again in a moment.", isNew: true,
-      }])
+      if (!res.ok || !res.body) {
+        const errBody = await res.json().catch(() => ({} as { error?: string }))
+        throw new Error(errBody.error ?? 'Request failed')
+      }
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+
+        const parts = buffer.split('\n\n')
+        buffer = parts.pop() ?? ''
+
+        for (const part of parts) {
+          const line = part.trim()
+          if (!line.startsWith('data: ')) continue
+          const payload = line.slice(6)
+          try {
+            const evt = JSON.parse(payload) as
+              | { type: 'session'; sessionId: string }
+              | { type: 'delta'; text: string }
+              | { type: 'done' }
+
+            if (evt.type === 'session') {
+              setSessionId(prev => prev ?? evt.sessionId)
+            } else if (evt.type === 'delta') {
+              const chunk = evt.text
+              setMessages(prev => prev.map(m =>
+                m.id === assistantId ? { ...m, content: m.content + chunk } : m
+              ))
+            }
+          } catch {
+            // ignore malformed event
+          }
+        }
+      }
+    } catch (err) {
+      const errText = err instanceof Error && err.message
+        ? err.message
+        : "I'm having trouble connecting right now. Please try again in a moment."
+      setMessages(prev => prev.map(m =>
+        m.id === assistantId ? { ...m, content: errText } : m
+      ))
     } finally {
       setIsLoading(false)
       inputRef.current?.focus()
@@ -550,7 +590,7 @@ export default function ChatPage() {
       )}
 
       {/* MAIN CHAT AREA */}
-      <div className="flex flex-col flex-1 min-w-0 h-full min-h-0">
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden" style={{ height: '100%' }}>
 
         {/* HEADER */}
         <header className="flex-shrink-0 px-4 py-2.5 flex items-center justify-between gap-3"
@@ -615,7 +655,7 @@ export default function ChatPage() {
         <DisclaimerBanner />
 
         {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center px-4 pb-16 max-w-lg mx-auto w-full">
               {votd && (
@@ -666,7 +706,7 @@ export default function ChatPage() {
             />
           ))}
 
-          {isLoading && (
+          {isLoading && messages[messages.length - 1]?.content === '' && (
             <div className="flex justify-start">
               <div className="rounded-2xl rounded-tl-sm px-4 py-3"
                    style={{ background: 'var(--msg-ai-bg)', border: '1px solid var(--border)', borderLeft: '3px solid var(--msg-ai-border)' }}>
@@ -684,8 +724,12 @@ export default function ChatPage() {
         </div>
 
         {/* INPUT */}
-        <div className="flex-shrink-0 px-4 py-3 pb-20 md:pb-3"
-             style={{ background: 'var(--header-bg)', borderTop: '1px solid var(--border)' }}>
+        <div className="flex-shrink-0 px-4 py-3"
+             style={{
+               background: 'var(--header-bg)',
+               borderTop: '1px solid var(--border)',
+               paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+             }}>
           <div className="flex gap-2 items-end max-w-3xl mx-auto">
             <textarea
               ref={inputRef}
