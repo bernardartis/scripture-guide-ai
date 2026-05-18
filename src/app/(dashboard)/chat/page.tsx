@@ -590,7 +590,7 @@ export default function ChatPage() {
       )}
 
       {/* MAIN CHAT AREA */}
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden" style={{ height: '100%', maxHeight: '100%' }}>
+      <div className="flex flex-col flex-1 min-w-0 overflow-x-hidden" style={{ height: '100%', maxHeight: '100%' }}>
 
         {/* HEADER */}
         <header className="flex-shrink-0 px-4 py-2.5 flex items-center justify-between gap-3"
@@ -655,7 +655,7 @@ export default function ChatPage() {
         <DisclaimerBanner />
 
         {/* MESSAGES */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4 pb-48 md:pb-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4 pb-52 md:pb-4">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center px-4 pb-16 max-w-lg mx-auto w-full">
               {votd && (
@@ -720,16 +720,20 @@ export default function ChatPage() {
             </div>
           )}
 
+          <div className="md:hidden" style={{ height: '140px', flexShrink: 0 }} />
           <div ref={bottomRef} />
         </div>
 
         {/* INPUT */}
-        <div className="flex-shrink-0 px-4 py-3 sticky bottom-0 sticky-input-ios"
-             style={{
-               background: 'var(--header-bg)',
-               borderTop: '1px solid var(--border)',
-               paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
-             }}>
+        <div
+          className="fixed left-0 right-0 z-50 px-4 py-3 md:relative md:z-auto"
+          style={{
+            bottom: 'env(safe-area-inset-bottom, 0px)',
+            background: 'var(--header-bg)',
+            borderTop: '1px solid var(--border)',
+            paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+          }}
+        >
           <div className="flex gap-2 items-end max-w-3xl mx-auto">
             <textarea
               ref={inputRef}
