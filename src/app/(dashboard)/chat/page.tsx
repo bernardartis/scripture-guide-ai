@@ -724,9 +724,9 @@ export default function ChatPage() {
         </div>
 
         {/* INPUT */}
-        <div className="input-anchor px-3 py-3 md:px-4 md:flex-shrink-0"
+        <div className="input-anchor px-3 py-3 md:px-4 md:flex-shrink-0 overflow-hidden"
              style={{ background: 'var(--header-bg)', borderTop: '1px solid var(--border)', paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
-          <div className="flex gap-1.5 md:gap-2 items-end max-w-3xl mx-auto">
+          <div className="flex gap-2 items-end w-full">
             <textarea
               ref={inputRef}
               value={input}
@@ -734,7 +734,7 @@ export default function ChatPage() {
               onKeyDown={handleKeyDown}
               placeholder={MODE_COPY[mode]?.placeholder ?? "What's on your heart today… (Shift+Enter for new line)"}
               rows={1}
-              className="flex-1 resize-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 transition-all"
+              className="flex-1 min-w-0 resize-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 transition-all"
               style={{
                 background: 'var(--bg-input)',
                 border: '1px solid var(--border)',
@@ -746,7 +746,7 @@ export default function ChatPage() {
             <button
               onClick={() => sendMessage(input)}
               disabled={!input.trim() || isLoading}
-              className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-all active:scale-95"
+              className="flex-shrink-0 w-10 h-10 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-all active:scale-95"
               style={{ background: 'var(--accent-grad)' }}
               aria-label="Send message">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
