@@ -412,20 +412,6 @@ export default function ChatPage() {
       .catch(() => null)
   }, [messages.length])
 
-  useEffect(() => {
-    const handleViewportResize = () => {
-      const vh = window.visualViewport?.height ?? window.innerHeight
-      document.documentElement.style.setProperty('--vh', `${vh * 0.01}px`)
-    }
-
-    window.visualViewport?.addEventListener('resize', handleViewportResize)
-    handleViewportResize()
-
-    return () => {
-      window.visualViewport?.removeEventListener('resize', handleViewportResize)
-    }
-  }, [])
-
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return
     const assistantId = crypto.randomUUID()
@@ -604,7 +590,7 @@ export default function ChatPage() {
       )}
 
       {/* MAIN CHAT AREA */}
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden" style={{ height: '100%' }}>
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden" style={{ height: '100%', maxHeight: '100%' }}>
 
         {/* HEADER */}
         <header className="flex-shrink-0 px-4 py-2.5 flex items-center justify-between gap-3"
@@ -742,7 +728,7 @@ export default function ChatPage() {
              style={{
                background: 'var(--header-bg)',
                borderTop: '1px solid var(--border)',
-               paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+               paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
              }}>
           <div className="flex gap-2 items-end max-w-3xl mx-auto">
             <textarea

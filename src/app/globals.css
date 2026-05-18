@@ -114,13 +114,18 @@ body::before {
 }
 .fade-in { animation: fadeIn 0.3s ease-out forwards; }
 
-/* iOS keyboard viewport fix */
-@supports (height: 100dvh) {
-  .h-screen-safe {
-    height: 100dvh;
+.h-screen-safe {
+  height: 100vh;
+}
+
+/* iOS safe area support */
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
 }
 
-.h-screen-safe {
-  height: calc(var(--vh, 1vh) * 100);
+body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
