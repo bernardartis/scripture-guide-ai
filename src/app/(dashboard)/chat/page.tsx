@@ -720,7 +720,7 @@ export default function ChatPage() {
             </div>
           )}
 
-          <div className="md:hidden" style={{ height: '140px', flexShrink: 0 }} />
+          <div className="md:hidden" style={{ height: '150px', flexShrink: 0 }} />
           <div ref={bottomRef} />
         </div>
 
@@ -728,10 +728,10 @@ export default function ChatPage() {
         <div
           className="fixed left-0 right-0 z-50 px-4 py-3 md:relative md:z-auto"
           style={{
-            bottom: 'env(safe-area-inset-bottom, 0px)',
+            bottom: '64px',
             background: 'var(--header-bg)',
             borderTop: '1px solid var(--border)',
-            paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+            paddingBottom: '12px',
           }}
         >
           <div className="flex gap-2 items-end max-w-3xl mx-auto">
