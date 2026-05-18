@@ -129,3 +129,8 @@ body {
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
+
+.sticky-input-ios {
+  position: -webkit-sticky;
+  position: sticky;
+}

@@ -104,7 +104,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex"
-           style={{ background: 'var(--sidebar-bg)', borderTop: '1px solid var(--border)' }}>
+           style={{ paddingBottom: 'env(safe-area-inset-bottom)', background: 'var(--sidebar-bg)', borderTop: '1px solid var(--border)' }}>
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href
           return (
