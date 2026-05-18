@@ -412,6 +412,20 @@ export default function ChatPage() {
       .catch(() => null)
   }, [messages.length])
 
+  useEffect(() => {
+    const handleViewportResize = () => {
+      const vh = window.visualViewport?.height ?? window.innerHeight
+      document.documentElement.style.setProperty('--vh', `${vh * 0.01}px`)
+    }
+
+    window.visualViewport?.addEventListener('resize', handleViewportResize)
+    handleViewportResize()
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleViewportResize)
+    }
+  }, [])
+
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return
     const assistantId = crypto.randomUUID()
@@ -576,7 +590,7 @@ export default function ChatPage() {
                   </p>
                 </button>
                 <button onClick={(e) => deleteSession(s.id, e)}
-                  className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-2 mt-2 mr-2 rounded-lg transition-all"
+                  className="flex-shrink-0 p-2 mt-2 mr-2 rounded-lg transition-all opacity-60 md:opacity-0 md:group-hover:opacity-100"
                   style={{ color: 'var(--ink-faint)' }}
                   title="Delete conversation">
                   <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">

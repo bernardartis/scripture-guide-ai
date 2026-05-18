@@ -42,7 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { theme, toggle } = useTheme()
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
+    <div className="flex h-screen-safe overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
 
       <aside className="hidden md:flex flex-col w-60 flex-shrink-0"
              style={{ background: 'var(--sidebar-bg)', borderRight: '1px solid var(--sidebar-border)' }}>
