@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
-const PROTECTED_PREFIXES = ['/chat', '/settings', '/billing', '/api/chat', '/api/bible']
+const PROTECTED_PREFIXES = ['/chat', '/read', '/settings', '/billing', '/api/chat', '/api/bible']
 const AUTH_ONLY_ROUTES   = ['/login', '/signup']
 
 export async function proxy(request: NextRequest) {

@@ -1,10 +1,24 @@
 // lib/bible/aolab.ts
 // AO Lab Free Use Bible API — no key, no rate limits, MIT licensed
 // Covers KJV, WEB, BSB, ASV, YLT, and 1,000+ others
+// Docs: https://bible.helloao.org/docs/
 
 import type { BibleVersionCode, VerseResult } from '@/types'
 
-const BASE_URL = 'https://api.helloao.org/api'
+const BASE_URL = 'https://bible.helloao.org/api'
+
+// AO Lab translation IDs differ from the short codes used in the app
+const TRANSLATION_IDS: Record<string, string> = {
+  KJV: 'eng_kjv',
+  WEB: 'ENGWEBP',
+  BSB: 'BSB',
+  ASV: 'eng_asv',
+  YLT: 'eng_ylt',
+}
+
+export function getAoLabTranslationId(versionCode: BibleVersionCode): string {
+  return TRANSLATION_IDS[versionCode] ?? versionCode
+}
 
 // Map common book names to AO Lab book IDs
 const BOOK_IDS: Record<string, string> = {
@@ -29,16 +43,67 @@ const BOOK_IDS: Record<string, string> = {
   'Revelation': 'REV',
 }
 
-interface AoLabVerse {
-  number: string
+// Shape of the ".simple.json" chapter endpoint: each content item is a
+// heading, subtitle, line break, or verse with flattened text.
+interface AoLabSimpleContentItem {
+  type: 'verse' | 'heading' | 'hebrew_subtitle' | 'line_break' | string
+  number?: number
+  text?: string
+}
+
+interface AoLabSimpleChapterResponse {
+  chapter: {
+    number: number
+    content: AoLabSimpleContentItem[]
+  }
+  numberOfVerses?: number
+}
+
+export interface ChapterVerse {
+  number: number
   text: string
 }
 
-interface AoLabChapterResponse {
-  translation: string
-  book: string
+function cleanVerseText(raw: string): string {
+  return raw
+    .replace(/\u00b6/g, '')   // KJV pilcrow paragraph markers
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * Fetch a whole chapter as an ordered list of { number, text } verses.
+ * bookId is the AO Lab book ID (GEN, PSA, MAT, ...). Safe to call from the
+ * browser: the API sends Access-Control-Allow-Origin: *.
+ */
+export async function fetchChapterFromAoLab(
+  versionCode: BibleVersionCode,
+  bookId: string,
   chapter: number
-  verses: AoLabVerse[]
+): Promise<ChapterVerse[]> {
+  const translationId = getAoLabTranslationId(versionCode)
+  const url = `${BASE_URL}/${translationId}/${bookId}/${chapter}.simple.json`
+
+  const response = await fetch(url, {
+    headers: { 'Accept': 'application/json' },
+    next: { revalidate: 86400 }, // Cache for 24h — Bible text doesn't change
+  })
+
+  if (!response.ok) {
+    throw new Error(`AO Lab API error ${response.status} for ${versionCode} ${bookId} ${chapter}`)
+  }
+
+  const data: AoLabSimpleChapterResponse = await response.json()
+  const verses: ChapterVerse[] = []
+
+  for (const item of data.chapter?.content ?? []) {
+    if (item.type !== 'verse' || typeof item.number !== 'number') continue
+    const text = cleanVerseText(item.text ?? '')
+    if (!text) continue
+    verses.push({ number: item.number, text })
+  }
+
+  return verses
 }
 
 export async function fetchVerseFromAoLab(
@@ -51,23 +116,11 @@ export async function fetchVerseFromAoLab(
   const bookId = BOOK_IDS[book]
   if (!bookId) throw new Error(`Unknown book: "${book}"`)
 
-  const url = `${BASE_URL}/${versionCode}/${bookId}/${chapter}.json`
+  const verses = await fetchChapterFromAoLab(versionCode, bookId, chapter)
 
-  const response = await fetch(url, {
-    headers: { 'Accept': 'application/json' },
-    next: { revalidate: 86400 }, // Cache for 24h — Bible text doesn't change
-  })
-
-  if (!response.ok) {
-    throw new Error(`AO Lab API error ${response.status} for ${versionCode} ${book} ${chapter}`)
-  }
-
-  const data: AoLabChapterResponse = await response.json()
-
-  const selected = (data.verses || []).filter((v) => {
-    const num = parseInt(v.number, 10)
-    return verseEnd ? num >= verseStart && num <= verseEnd : num === verseStart
-  })
+  const selected = verses.filter((v) =>
+    verseEnd ? v.number >= verseStart && v.number <= verseEnd : v.number === verseStart
+  )
 
   if (selected.length === 0) {
     throw new Error(`Verse not found: ${book} ${chapter}:${verseStart} in ${versionCode}`)

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useTheme } from '@/lib/theme'
@@ -359,6 +360,15 @@ function MessageBubble({ message, isLast, onFollowUp, mode }: {
 // ─── MAIN CHAT PAGE ───────────────────────────────────────────────────────────
 
 export default function ChatPage() {
+  return (
+    <Suspense fallback={null}>
+      <ChatPageInner />
+    </Suspense>
+  )
+}
+
+function ChatPageInner() {
+  const searchParams = useSearchParams()
   const { theme, toggle } = useTheme()
   const [messages, setMessages]       = useState<Message[]>([])
   const [input, setInput]             = useState('')
@@ -371,6 +381,8 @@ export default function ChatPage() {
   const [history, setHistory]         = useState<SessionSummary[]>([])
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef  = useRef<HTMLTextAreaElement>(null)
+  const readerParamsFired = useRef(false)
+  const sendMessageRef = useRef<(text: string) => Promise<void>>(async () => {})
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
@@ -480,6 +492,31 @@ export default function ChatPage() {
       inputRef.current?.focus()
     }
   }, [isLoading, sessionId, version, mode])
+
+  useEffect(() => {
+    sendMessageRef.current = sendMessage
+  }, [sendMessage])
+
+  // Bible Reader bridge: /chat?book=Psalms&chapter=23&version=KJV
+  // Fires once on initial mount, then clears the params so a refresh does not resend.
+  useEffect(() => {
+    if (readerParamsFired.current) return
+    const book = searchParams.get('book')
+    const chapter = searchParams.get('chapter')
+    const paramVersion = searchParams.get('version')
+    if (!book || !chapter || !paramVersion) return
+    readerParamsFired.current = true
+
+    if (FREE_VERSIONS.includes(paramVersion as BibleVersionCode)) {
+      setVersion(paramVersion as BibleVersionCode)
+    }
+
+    const timer = setTimeout(() => {
+      sendMessageRef.current(`Tell me about ${book} ${chapter} (${paramVersion})`)
+      window.history.replaceState(null, '', '/chat')
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchParams])
 
   const loadSession = useCallback(async (sid: string) => {
     const res = await fetch('/api/chat/sessions', {
