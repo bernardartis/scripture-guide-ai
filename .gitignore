@@ -15,7 +15,8 @@
 
 # next.js
 /.next/
-/out/
+/out/*
+!/out/index.html
 
 # production
 /build
@@ -39,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Capacitor iOS
+ios/App/Pods/
+ios/App/App.xcworkspace/xcuserdata/
+ios/.DS_Store
