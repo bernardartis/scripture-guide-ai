@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Emmaus',
   webDir: 'out',
   server: {
-    url: 'https://digsbs.com',
+    url: 'https://scripture-guide-ai.vercel.app',
     cleartext: false,
   },
   ios: {
